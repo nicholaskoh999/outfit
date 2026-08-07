@@ -40,16 +40,32 @@ interface ItemImageProps {
   inset?: boolean;
 }
 
+/**
+ * Presentation scale that normalizes visual weight across mixed sources:
+ * model-worn photos (flagged in the package's asset notes) render slightly
+ * smaller for a calmer, consistent safe area; the shoe's side-profile
+ * product shot — which carries generous canvas margins — scales up a touch.
+ * Purely a display transform; source images are untouched and uncropped.
+ */
+function presentationScale(item: WardrobeItem): number {
+  if (item.category === "shoe") return 1.16;
+  const modelWorn = item.assetNotes?.some((n) => n.toLowerCase().includes("model-worn"));
+  return modelWorn ? 0.9 : 0.97;
+}
+
 export function ItemImage({ item, className = "", inset = false }: ItemImageProps) {
   const hero = item.images.find((img) => img.type === "hero");
   if (hero) {
+    const scale = presentationScale(item) * (inset ? 0.96 : 1);
     return (
-      <img
-        src={hero.src}
-        alt={item.name}
-        className={`h-full w-full object-contain bg-studio ${className}`}
-        loading="lazy"
-      />
+      <div className="h-full w-full bg-studio" style={{ transform: `scale(${scale})` }}>
+        <img
+          src={hero.src}
+          alt={item.name}
+          className={`h-full w-full object-contain ${className}`}
+          loading="lazy"
+        />
+      </div>
     );
   }
   const stroke = item.color.tone === "light" ? "rgba(23,22,20,0.14)" : "rgba(23,22,20,0.06)";

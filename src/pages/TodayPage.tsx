@@ -128,29 +128,37 @@ export function TodayPage() {
                   className="transition-transform duration-500 group-hover:scale-[1.015]"
                 />
               </div>
-              <div className="sm:pt-4">
-                <p className="display text-4xl mb-2">{formatScore(quickPick.breakdown.total)}</p>
+              <div className="sm:pt-2">
+                <div className="flex items-baseline justify-between pb-5 mb-6 border-b hairline">
+                  <span className="label-caps">Today's score</span>
+                  <p className="display text-5xl leading-none tabular-nums">
+                    {formatScore(quickPick.breakdown.total)}
+                  </p>
+                </div>
                 {quickPick.seed?.name && (
-                  <p className="display text-xl mb-3">{quickPick.seed.name}</p>
+                  <p className="display text-xl mb-4">{quickPick.seed.name}</p>
                 )}
-                <ul className="space-y-1 mb-5">
+                <ul className="space-y-2 mb-7">
                   {comboItems(quickPick.combo).map((item) => (
-                    <li key={item.id} className="text-sm font-light text-ink-soft">
+                    <li key={item.id} className="text-[15px] font-light leading-snug">
                       {item.name}
                       <span className="text-ink-faint"> — {item.color.name}</span>
                     </li>
                   ))}
                 </ul>
-                <ul className="space-y-1">
-                  {quickPick.reasons.map((r) => (
-                    <li key={r} className="text-[13px] font-light text-ink-faint">
-                      · {r}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-6 label-caps text-ink group-hover:underline underline-offset-4">
+                <div className="border-t hairline pt-5 mb-8">
+                  <p className="label-caps mb-2.5">Why it works</p>
+                  <ul className="space-y-1.5">
+                    {quickPick.reasons.map((r) => (
+                      <li key={r} className="text-[13px] font-light text-ink-soft">
+                        · {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <span className="inline-block label-caps text-ink border-b border-ink pb-0.5 transition-opacity group-hover:opacity-60">
                   View outfit
-                </p>
+                </span>
               </div>
             </Link>
           </section>

@@ -31,13 +31,13 @@ export function RecommendationCard({ role, outfit, search = "" }: Recommendation
       <div className="relative overflow-hidden rounded-card">
         <OutfitTriptych combo={outfit.combo} className="transition-transform duration-500 group-hover:scale-[1.015]" />
       </div>
-      <div className="mt-3 space-y-0.5">
+      <div className="mt-3.5 space-y-1">
         {outfit.seed?.name && <p className="display text-lg leading-tight">{outfit.seed.name}</p>}
-        <p className="text-[13px] font-light text-ink-soft leading-snug">
+        <p className="text-[13px] font-light leading-snug">
           {top.name} · {bottom.name} · {shoe.name}
         </p>
         {outfit.reasons[0] && (
-          <p className="text-[12px] text-ink-faint font-light pt-0.5">{outfit.reasons[0]}</p>
+          <p className="text-[12px] text-ink-faint font-light pt-1">{outfit.reasons[0]}</p>
         )}
       </div>
     </Link>
