@@ -107,12 +107,13 @@ export function OutfitsPage() {
         <span className="label-caps">{filtered.length} looks</span>
       </div>
 
-      <div className="flex gap-6 border-b hairline mb-8">
+      {/* Five tabs overflow a phone width, so the row scrolls edge to edge. */}
+      <div className="flex gap-6 border-b hairline mb-8 overflow-x-auto no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0">
         {FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`pb-3 -mb-px text-[12px] uppercase tracking-[0.14em] border-b transition-colors cursor-pointer ${
+            className={`pb-3 -mb-px shrink-0 whitespace-nowrap text-[12px] uppercase tracking-[0.14em] border-b transition-colors cursor-pointer ${
               filter === f.value
                 ? "border-ink text-ink"
                 : "border-transparent text-ink-faint hover:text-ink-soft"
