@@ -10,14 +10,14 @@ export function OutfitTriptych({ combo, className = "" }: { combo: OutfitCombo; 
   const [top, bottom, shoe] = comboItems(combo);
   return (
     <div className={`aspect-[4/5] grid grid-rows-[3fr_2fr] gap-px bg-line overflow-hidden rounded-card ${className}`}>
-      <div className="overflow-hidden bg-paper-deep">
+      <div className="overflow-hidden bg-studio">
         <ItemImage item={top} />
       </div>
       <div className="grid grid-cols-2 gap-px">
-        <div className="overflow-hidden bg-paper-deep">
+        <div className="overflow-hidden bg-studio">
           <ItemImage item={bottom} inset />
         </div>
-        <div className="overflow-hidden bg-paper-deep">
+        <div className="overflow-hidden bg-studio">
           <ItemImage item={shoe} inset />
         </div>
       </div>

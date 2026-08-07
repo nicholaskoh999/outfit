@@ -2,7 +2,7 @@
 
 export type Category = "top" | "bottom" | "shoe";
 
-export type Fit = "slim" | "regular" | "loose" | "oversized";
+export type Fit = "slim" | "regular" | "loose" | "wide" | "oversized";
 
 export type ItemStatus = "active" | "laundry" | "unavailable" | "retired" | "wishlist";
 
@@ -34,7 +34,8 @@ export type ColorFamily =
 export type ImageRole = "hero" | "front" | "back" | "worn" | "detail";
 
 export interface ItemImage {
-  role: ImageRole;
+  /** Image role — matches the asset package's `type` key. */
+  type: ImageRole;
   src: string;
 }
 
@@ -58,13 +59,14 @@ export interface WardrobeItem {
   id: string;
   slug: string;
   name: string;
-  brand: string;
+  brand: string | null;
   category: Category;
   type: string;
   color: ItemColor;
-  fit: Fit;
-  material: string;
-  size: string;
+  /** null when not specified (e.g. shoes in the asset package). */
+  fit: Fit | null;
+  material?: string;
+  size?: string;
   occasions: Occasion[];
   weather: Weather[];
   /** 0–10, how much abuse the piece tolerates (dirt, movement, weather). */
@@ -76,6 +78,9 @@ export interface WardrobeItem {
   placeholder?: boolean;
   images: ItemImage[];
   purchase?: PurchaseInfo;
+  /** Asset-package metadata (image provenance, not garment data). */
+  asset_quality?: string;
+  assetNotes?: string[];
 }
 
 export interface OutfitCombo {

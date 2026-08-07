@@ -13,7 +13,7 @@ export function WardrobeCard({ item, status, favorite }: WardrobeCardProps) {
   const dimmed = status !== "active";
   return (
     <Link to={`/wardrobe/${item.id}`} className="group block animate-fade-up">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-paper-deep">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-studio">
         <ItemImage
           item={item}
           className={`transition-all duration-500 group-hover:scale-[1.02] ${dimmed ? "opacity-45" : ""}`}
@@ -26,11 +26,6 @@ export function WardrobeCard({ item, status, favorite }: WardrobeCardProps) {
         {dimmed && (
           <span className="absolute left-2.5 bottom-2.5 label-caps bg-paper/85 px-2 py-1 rounded-card">
             {status}
-          </span>
-        )}
-        {item.placeholder && (
-          <span className="absolute left-2.5 top-2.5 label-caps bg-paper/85 px-2 py-1 rounded-card">
-            Placeholder
           </span>
         )}
       </div>

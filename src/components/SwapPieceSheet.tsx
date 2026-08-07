@@ -67,10 +67,7 @@ export function SwapPieceSheet({ open, onOpenChange, combo, slot, ctx, onSwap }:
                     <p className="text-sm font-light truncate group-hover:underline underline-offset-4">
                       {item.name}
                     </p>
-                    <p className="text-[12px] text-ink-faint font-light">
-                      {item.color.name}
-                      {item.placeholder ? " · placeholder" : ""}
-                    </p>
+                    <p className="text-[12px] text-ink-faint font-light">{item.color.name}</p>
                   </div>
                   <span className="display text-lg tabular-nums">
                     {formatScore(alt.breakdown.total)}

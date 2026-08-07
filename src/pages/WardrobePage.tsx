@@ -34,7 +34,12 @@ export function WardrobePage() {
     return wardrobe.filter((item) => {
       if (tab !== "all" && item.category !== tab) return false;
       const status = effectiveStatus(item, user);
-      if (q && !`${item.name} ${item.brand} ${item.color.name} ${item.type}`.toLowerCase().includes(q))
+      if (
+        q &&
+        !`${item.name} ${item.brand ?? ""} ${item.color.name} ${item.type.replace(/_/g, " ")}`
+          .toLowerCase()
+          .includes(q)
+      )
         return false;
       if (filters.color && item.color.family !== filters.color) return false;
       if (filters.occasion && !item.occasions.includes(filters.occasion)) return false;

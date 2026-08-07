@@ -32,7 +32,7 @@ const COLOR_OPTIONS: { value: ColorFamily; label: string }[] = [
   { value: "apricot", label: "Apricot" },
 ];
 
-const FIT_OPTIONS: Fit[] = ["slim", "regular", "loose", "oversized"];
+const FIT_OPTIONS: Fit[] = ["slim", "regular", "loose", "wide", "oversized"];
 const STATUS_OPTIONS: ItemStatus[] = ["active", "laundry", "unavailable", "retired", "wishlist"];
 
 function Chip({

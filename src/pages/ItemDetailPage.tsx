@@ -63,23 +63,31 @@ export function ItemDetailPage() {
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8 animate-fade-in">
       <div className="pt-8 sm:pt-12 pb-6">
-        <p className="label-caps mb-1.5">
-          {item.brand}
-          {item.placeholder && " · placeholder item"}
-        </p>
+        <p className="label-caps mb-1.5">{item.brand ?? "No brand"}</p>
         <h1 className="display text-3xl sm:text-4xl leading-tight">{item.name}</h1>
       </div>
 
       <div className="grid sm:grid-cols-[minmax(0,440px)_1fr] gap-8 sm:gap-14 pb-16">
-        {/* Image (gallery-ready: renders hero; more roles slot in later) */}
+        {/* Image gallery: hero plus any additional supplied roles (e.g. worn) */}
         <div>
-          <div className="aspect-[4/5] overflow-hidden rounded-card bg-paper-deep">
+          <div className="aspect-[4/5] overflow-hidden rounded-card bg-studio">
             <ItemImage item={item} />
           </div>
-          {item.placeholder && (
-            <p className="mt-3 text-[12px] font-light text-ink-faint">
-              Prototype-only placeholder — not a real owned item. Will be replaced by real shoes.
-            </p>
+          {item.images.filter((img) => img.type !== "hero").length > 0 && (
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {item.images
+                .filter((img) => img.type !== "hero")
+                .map((img) => (
+                  <figure key={img.src} className="aspect-[4/5] overflow-hidden rounded-card bg-studio">
+                    <img
+                      src={img.src}
+                      alt={`${item.name} — ${img.type}`}
+                      className="h-full w-full object-contain"
+                      loading="lazy"
+                    />
+                  </figure>
+                ))}
+            </div>
           )}
         </div>
 
@@ -125,11 +133,11 @@ export function ItemDetailPage() {
           {/* Metadata */}
           <div className="mb-8">
             <MetaRow label="Category" value={item.category === "shoe" ? "Shoes" : item.category === "top" ? "Top" : "Bottom"} />
-            <MetaRow label="Type" value={item.type} />
-            <MetaRow label="Color" value={`${item.color.name} (${item.color.family})`} />
-            <MetaRow label="Fit" value={item.fit} />
-            <MetaRow label="Material" value={item.material} />
-            <MetaRow label="Size" value={item.size} />
+            <MetaRow label="Type" value={item.type.replace(/_/g, " ")} />
+            <MetaRow label="Color" value={item.color.name} />
+            <MetaRow label="Fit" value={item.fit ?? "Not specified"} />
+            {item.material && <MetaRow label="Material" value={item.material} />}
+            {item.size && <MetaRow label="Size" value={item.size} />}
             <MetaRow label="Occasions" value={item.occasions.map(occasionLabel).join(", ")} />
             <MetaRow
               label="Worn"

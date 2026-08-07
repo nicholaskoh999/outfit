@@ -91,14 +91,14 @@ export function OutfitDetailPage() {
           {items.map((item, i) => {
             const slot: Category = (["top", "bottom", "shoe"] as const)[i];
             return (
-              <div key={item.id} className="relative bg-paper-deep group">
+              <div key={item.id} className="relative bg-studio group">
                 <Link to={`/wardrobe/${item.id}`} className="block aspect-[4/3] overflow-hidden">
                   <ItemImage
                     item={item}
                     className="transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 </Link>
-                <div className="absolute left-4 bottom-3 right-4 flex items-end justify-between pointer-events-none">
+                <div className="absolute inset-x-0 bottom-0 px-4 pb-3 pt-10 bg-gradient-to-t from-paper/95 via-paper/65 to-transparent flex items-end justify-between pointer-events-none">
                   <div>
                     <p className="label-caps">{SLOT_LABEL[slot]}</p>
                     <p className="text-[13px] font-light">

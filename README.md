@@ -11,9 +11,9 @@ in the browser; all user interaction state lives in `localStorage`.
 
 ```bash
 npm install
-npm run dev       # local dev server
-npm run build     # type-check + production build to dist/
-npm run preview   # serve the production build
+npm run dev -- --host 0.0.0.0   # local dev server (default http://localhost:5173)
+npm run build                    # type-check + production build to dist/
+npm run preview                  # serve the production build
 ```
 
 Stack: React 18 · TypeScript · Vite · Tailwind CSS v4 · Radix primitives
@@ -70,15 +70,19 @@ lib/
 
 ## Data model
 
-- **`src/data/wardrobe.json`** — canonical wardrobe seed (10 real items +
-  3 placeholder shoes). Fields: stable `id` (`top-001`), separate `slug`,
-  name/brand/category/type, structured `color` (name, family, hex, tone),
-  `fit` (slim/regular/loose/oversized), material, size, `occasions`,
-  `weather`, `practicality` (0–10) + notes, `styles`, `status`, `images`
-  (roles: hero/front/back/worn/detail), optional `purchase`, and
-  `placeholder: true` for prototype-only shoes.
-- **`src/data/outfits.json`** — curated outfit seeds: stable `id`, optional
-  `name`, `items` {top, bottom, shoe}, `status` (approved/suggested), note.
+- **`src/data/wardrobe.json`** — canonical wardrobe seed built from the
+  real asset package (5 tops, 4 bottoms, 1 shoe — 10 items, all `active`).
+  Identity/asset fields (ids, slugs, names, brands, types, colors, fits,
+  statuses, image paths, `asset_quality`/`assetNotes`) come from the
+  package's `wardrobe.json` verbatim; structured scoring metadata (color
+  family/hex/tone, occasions, weather, practicality, styles) is merged in
+  for the deterministic engine. `brand` and `fit` may be `null` when the
+  package didn't specify them. `HIMLAND Shorts — Black` (`bottom-004`) is
+  intentionally absent — no image was supplied.
+- **`src/data/outfits.json`** — intentionally empty
+  (`pending_user_approval`); seed outfits will be added only after the
+  user approves candidate combinations. The Outfits page lists
+  user-approved combos from localStorage in the meantime.
 - Seed JSON is **never mutated at runtime**. Any top×bottom×shoe combination
   has a stable derived identity: `top-001_bottom-001_shoe-002`.
 - Status vocabulary already supports `wishlist` and retired items are never
@@ -122,20 +126,21 @@ cards, bottom-sheet Refine/filters/swap, large imagery. Desktop (≥640px):
 top navigation, three recommendation columns, inline filter panel,
 side-panel sheets, denser metadata. Same visual language on both.
 
-## Placeholder assets / data
+## Imagery
 
-- **All garment imagery** is generated placeholder SVG (silhouette in the
-  item's real colour on a warm studio background, 4:5). Real photos slot in
-  by populating `images` in `wardrobe.json` — `ItemImage` automatically
-  prefers a `hero` image; no layout changes needed.
-- **The 3 shoes** (`shoe-001…003`) are marked `"placeholder": true` in the
-  seed data and labelled "Placeholder" in the UI. They are not real owned
-  items.
+All garment imagery is real photography from the asset package
+(`public/assets/{tops,bottoms,shoes}/`, normalized 1200×1500 / 4:5 WebP
+on a warm off-white canvas). Images render with `object-contain` on the
+`studio` background token (`#f7f6f2`, sampled from the photo canvas), so
+garments are never cropped — non-4:5 layout cells letterbox seamlessly.
+Some sources are model-worn photos, used as supplied. The SVG silhouette
+in `ItemImage` remains only as a fallback for future items added without
+imagery.
 
 ## Implementation notes for the next phase
 
-1. Real photography: 4:5, ~1200×1500 WebP, warm off-white background —
-   drop into `images` per item, no code changes.
+1. New photography: 4:5, ~1200×1500 WebP, warm off-white background —
+   drop into `public/assets/` and reference from `images` per item.
 2. Weights, colour matrix, and recency decay are intentionally isolated in
    `lib/scoring.ts` / `lib/colors.ts` for tuning.
 3. `UserState` is the exact shape a future backend would sync; the store is

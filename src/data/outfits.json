@@ -1,56 +1,5 @@
 {
-  "outfits": [
-    {
-      "id": "outfit-001",
-      "name": "Clean Factory Day",
-      "items": { "top": "top-001", "bottom": "bottom-001", "shoe": "shoe-002" },
-      "status": "approved",
-      "note": "Charcoal over black — hides the day's work, still looks put together."
-    },
-    {
-      "id": "outfit-002",
-      "name": "Customer Visit Standard",
-      "items": { "top": "top-004", "bottom": "bottom-001", "shoe": "shoe-001" },
-      "status": "approved",
-      "note": "Baby blue shirt against black trousers reads considered without trying."
-    },
-    {
-      "id": "outfit-003",
-      "items": { "top": "top-005", "bottom": "bottom-003", "shoe": "shoe-003" },
-      "status": "approved",
-      "note": "White and grey — soft, low-contrast, easy."
-    },
-    {
-      "id": "outfit-004",
-      "name": "Hot Day Errands",
-      "items": { "top": "top-002", "bottom": "bottom-004", "shoe": "shoe-002" },
-      "status": "approved",
-      "note": "Greenish blue on black, shorts for the heat."
-    },
-    {
-      "id": "outfit-005",
-      "items": { "top": "top-003", "bottom": "bottom-001", "shoe": "shoe-001" },
-      "status": "approved",
-      "note": "Beige over black is a reliable evening default."
-    },
-    {
-      "id": "outfit-006",
-      "name": "Apricot Experiment",
-      "items": { "top": "top-001", "bottom": "bottom-002", "shoe": "shoe-001" },
-      "status": "suggested",
-      "note": "Charcoal + apricot — slightly forward, worth trying on a good day."
-    },
-    {
-      "id": "outfit-007",
-      "items": { "top": "top-004", "bottom": "bottom-003", "shoe": "shoe-003" },
-      "status": "suggested",
-      "note": "Baby blue with grey denim — softer take on the shirt."
-    },
-    {
-      "id": "outfit-008",
-      "items": { "top": "top-005", "bottom": "bottom-004", "shoe": "shoe-001" },
-      "status": "suggested",
-      "note": "White long sleeve over black shorts for aggressive AC days."
-    }
-  ]
+  "status": "pending_user_approval",
+  "note": "Seed outfits intentionally left empty. Create 8–12 candidate outfits from the real wardrobe, then add only user-approved combinations.",
+  "outfits": []
 }

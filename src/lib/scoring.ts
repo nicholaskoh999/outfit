@@ -108,7 +108,9 @@ function tasteScore(combo: OutfitCombo, items: WardrobeItem[], user: UserState):
   const count = (r: string) => reasons.filter((x) => x === r).length;
   const greyPieces = items.filter((i) => ["grey", "charcoal"].includes(i.color.family)).length;
   if (greyPieces >= 2) score -= Math.min(1, count("too much grey") * 0.4);
-  const widePieces = items.filter((i) => i.fit === "oversized" || i.fit === "loose").length;
+  const widePieces = items.filter(
+    (i) => i.fit === "oversized" || i.fit === "loose" || i.fit === "wide",
+  ).length;
   if (widePieces >= 2) score -= Math.min(1, count("too wide") * 0.4);
 
   return clamp10(score);
@@ -131,7 +133,11 @@ function colorScore(items: WardrobeItem[]): number {
 /* Silhouette balance                                                  */
 /* ------------------------------------------------------------------ */
 
-const FIT_VOLUME: Record<Fit, number> = { slim: 1, regular: 2, loose: 3, oversized: 4 };
+const FIT_VOLUME: Record<Fit, number> = { slim: 1, regular: 2, loose: 3, wide: 4, oversized: 4 };
+
+function volume(item: WardrobeItem): number {
+  return item.fit ? FIT_VOLUME[item.fit] : 2;
+}
 
 function shoeVolume(shoe: WardrobeItem): number {
   return shoe.type === "runner" || shoe.type === "boot" ? 3 : 2;
@@ -139,8 +145,8 @@ function shoeVolume(shoe: WardrobeItem): number {
 
 function silhouetteScore(items: WardrobeItem[], combo: OutfitCombo, user: UserState): number {
   const [top, bottom, shoe] = items;
-  const tv = FIT_VOLUME[top.fit];
-  const bv = FIT_VOLUME[bottom.fit];
+  const tv = volume(top);
+  const bv = volume(bottom);
   const sv = shoeVolume(shoe);
 
   let score = 8;
@@ -172,6 +178,9 @@ function practicalityScore(items: WardrobeItem[], ctx: RecommendationContext): n
   let sum = 0;
   for (const item of items) {
     let s = item.practicality;
+    // Normalize type spelling ("long_sleeve_tee" → "long-sleeve-tee").
+    const type = item.type.replace(/_/g, "-");
+    const longSleeved = type.includes("long-sleeve") || type === "shirt";
     if (factoryFloor) {
       // Dirt and oil risk matters more; light colours take a penalty (never a ban).
       if (item.color.tone === "light") s -= 2.5;
@@ -181,18 +190,18 @@ function practicalityScore(items: WardrobeItem[], ctx: RecommendationContext): n
       s = Math.max(s, 6); // relaxed rules away from the machines
     }
     if (weather === "hot" || weather === "humid") {
-      if (item.type.includes("shorts") || item.type === "tee") s += 1.2;
-      if (item.type.includes("long-sleeve") || item.type === "shirt") s -= 1;
+      if (type.includes("shorts") || type === "tee") s += 1.2;
+      if (longSleeved) s -= 1;
       if (!item.weather.includes(weather)) s -= 1.2;
     }
     if (weather === "rainy") {
       if (item.category === "shoe" && item.color.tone === "light") s -= 2.5;
-      if (item.material.toLowerCase().includes("suede")) s -= 1.5;
+      if (item.material?.toLowerCase().includes("suede")) s -= 1.5;
       if (!item.weather.includes("rainy")) s -= 1;
     }
     if (weather === "indoor_ac") {
-      if (item.type.includes("long-sleeve") || item.type === "shirt") s += 1.2;
-      if (item.type.includes("shorts")) s -= 0.8;
+      if (longSleeved) s += 1.2;
+      if (type.includes("shorts")) s -= 0.8;
     }
     sum += clamp10(s);
   }

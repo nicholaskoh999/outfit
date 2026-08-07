@@ -98,13 +98,12 @@ export function recommend(
 /** A useful nudge instead of a weak filler recommendation. */
 function buildHint(user: UserState): string {
   const shoes = availableItems("shoe", user);
-  const realShoes = shoes.filter((s) => !s.placeholder);
   if (shoes.length === 0)
     return "No shoes available right now. Recommendations are based on the rest of your wardrobe.";
-  if (realShoes.length === 0)
-    return "Your shoes are placeholders for now — adding a real neutral sneaker would unlock more looks.";
   const neutralShoe = shoes.some((s) => isNeutral(s.color.family));
   if (!neutralShoe) return "Adding a neutral sneaker would unlock more looks.";
+  if (shoes.length === 1)
+    return "Every look currently shares your one pair of shoes — a second pair would unlock more distinct outfits.";
   return "A third distinct look isn't strong enough today — a mid-tone bottom would open up more combinations.";
 }
 

@@ -4,6 +4,8 @@
   /* Warm editorial palette — light mode only for v1 */
   --color-paper: #faf7f2;
   --color-paper-deep: #f3efe8;
+  /* Exact canvas colour of the normalized garment photography */
+  --color-studio: #f7f6f2;
   --color-ink: #171614;
   --color-ink-soft: #55524c;
   --color-ink-faint: #8d897f;
