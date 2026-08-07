@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  /* Warm editorial palette — light mode only for v1 */
+  --color-paper: #faf7f2;
+  --color-paper-deep: #f3efe8;
+  --color-ink: #171614;
+  --color-ink-soft: #55524c;
+  --color-ink-faint: #8d897f;
+  --color-line: #e4dfd5;
+  --color-line-strong: #c9c3b6;
+  --color-accent: #171614;
+
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-sans: "Inter", "Helvetica Neue", system-ui, sans-serif;
+
+  --radius-card: 2px;
+
+  --animate-fade-in: fade-in 0.5s ease both;
+  --animate-fade-up: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-sheet-up: sheet-up 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-sheet-in-right: sheet-in-right 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-overlay-in: overlay-in 0.3s ease both;
+  --animate-heart-pop: heart-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes sheet-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes overlay-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes heart-pop {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+  font-weight: 350;
+  letter-spacing: 0.01em;
+}
+
+/* Editorial helpers */
+.label-caps {
+  @apply text-[10px] uppercase tracking-[0.18em] text-ink-faint font-normal;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.hairline {
+  @apply border-line;
+}
+
+/* Hide horizontal scrollbars on swipe rows without killing scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
