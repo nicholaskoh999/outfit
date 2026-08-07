@@ -22,7 +22,7 @@ export function RecommendationCard({ role, outfit, search = "" }: Recommendation
   return (
     <Link
       to={`/outfits/${outfit.key}${search}`}
-      className="group block w-[78vw] max-w-[330px] sm:w-auto sm:max-w-none shrink-0 snap-center animate-fade-up"
+      className="group block w-[78vw] max-w-[330px] sm:w-auto sm:max-w-none shrink-0 snap-start snap-always animate-fade-up transition duration-200 active:scale-[0.985] active:opacity-90"
     >
       <div className="flex items-baseline justify-between mb-2.5">
         <span className="label-caps text-ink">{ROLE_LABELS[role]}</span>
@@ -40,6 +40,12 @@ export function RecommendationCard({ role, outfit, search = "" }: Recommendation
           <p className="text-[12px] text-ink-faint font-light pt-1">{outfit.reasons[0]}</p>
         )}
       </div>
+      <span className="mt-3 inline-flex items-center gap-1.5 label-caps text-ink border-b border-ink pb-0.5 transition-opacity group-hover:opacity-60">
+        View look
+        <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-0.5">
+          &rarr;
+        </span>
+      </span>
     </Link>
   );
 }

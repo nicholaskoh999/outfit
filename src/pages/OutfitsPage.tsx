@@ -1,20 +1,21 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { comboKey, outfitSeeds, parseComboKey } from "@/lib/data";
 import { scoreOutfit } from "@/lib/scoring";
-import { useStore } from "@/lib/store";
-import { formatScore, outfitNumber } from "@/lib/format";
+import { useStore, wearStatsForCombo } from "@/lib/store";
+import { formatScore, outfitNumber, relativeDate } from "@/lib/format";
 import { OutfitTriptych } from "@/components/OutfitTriptych";
 import { EmptyState } from "@/components/EmptyState";
 import type { OutfitCombo } from "@/lib/types";
 
-type OutfitFilter = "all" | "approved" | "suggested" | "favorites";
+type OutfitFilter = "all" | "approved" | "suggested" | "favorites" | "worn";
 
 const FILTERS: { value: OutfitFilter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "approved", label: "Approved" },
   { value: "suggested", label: "Suggested" },
   { value: "favorites", label: "Favorites" },
+  { value: "worn", label: "Worn" },
 ];
 
 interface OutfitEntry {
@@ -22,57 +23,82 @@ interface OutfitEntry {
   combo: OutfitCombo;
   seedId?: string;
   name?: string;
-  state: "approved" | "suggested";
+  state: "approved" | "suggested" | "worn";
   favorite: boolean;
+  timesWorn: number;
+  lastWorn: string | null;
 }
 
 const NEUTRAL_CTX = { occasion: null, refine: { weather: null, style: null, workContext: null } } as const;
 
 export function OutfitsPage() {
   const { user } = useStore();
-  const [filter, setFilter] = useState<OutfitFilter>("all");
+
+  // The filter lives in the URL so the wear-history toast can deep-link to it.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requested = searchParams.get("filter");
+  const filter: OutfitFilter =
+    FILTERS.some((f) => f.value === requested) ? (requested as OutfitFilter) : "all";
+  const setFilter = (value: OutfitFilter) =>
+    setSearchParams(value === "all" ? {} : { filter: value }, { replace: true });
 
   const entries = useMemo<OutfitEntry[]>(() => {
     const list: OutfitEntry[] = [];
     const seen = new Set<string>();
+    const withWear = (entry: Omit<OutfitEntry, "timesWorn" | "lastWorn">): OutfitEntry => {
+      const { timesWorn, lastWorn } = wearStatsForCombo(user, entry.key);
+      return { ...entry, timesWorn, lastWorn };
+    };
 
     for (const seed of outfitSeeds) {
       const key = comboKey(seed.items);
       seen.add(key);
       const decision = user.decisions[key];
       if (decision?.verdict === "rejected") continue;
-      list.push({
-        key,
-        combo: seed.items,
-        seedId: seed.id,
-        name: seed.name,
-        state: decision?.verdict === "approved" || seed.status === "approved" ? "approved" : "suggested",
-        favorite: user.favoriteLooks.includes(key),
-      });
+      list.push(
+        withWear({
+          key,
+          combo: seed.items,
+          seedId: seed.id,
+          name: seed.name,
+          state: decision?.verdict === "approved" || seed.status === "approved" ? "approved" : "suggested",
+          favorite: user.favoriteLooks.includes(key),
+        }),
+      );
     }
 
     // Combinations the user approved that aren't part of the curated seed set.
     for (const [key, decision] of Object.entries(user.decisions)) {
       if (decision.verdict !== "approved" || seen.has(key)) continue;
+      seen.add(key);
       const combo = parseComboKey(key);
       if (!combo) continue;
-      list.push({
-        key,
-        combo,
-        state: "approved",
-        favorite: user.favoriteLooks.includes(key),
-      });
+      list.push(withWear({ key, combo, state: "approved", favorite: user.favoriteLooks.includes(key) }));
+    }
+
+    // Looks the user actually wore, even if never curated or approved.
+    for (const wear of user.wearLog) {
+      if (seen.has(wear.key)) continue;
+      seen.add(wear.key);
+      if (user.decisions[wear.key]?.verdict === "rejected") continue;
+      const combo = parseComboKey(wear.key);
+      if (!combo) continue;
+      list.push(withWear({ key: wear.key, combo, state: "worn", favorite: user.favoriteLooks.includes(wear.key) }));
     }
 
     return list;
   }, [user]);
 
-  const filtered = entries.filter((e) => {
-    if (filter === "approved") return e.state === "approved";
-    if (filter === "suggested") return e.state === "suggested";
-    if (filter === "favorites") return e.favorite;
-    return true;
-  });
+  const filtered = entries
+    .filter((e) => {
+      if (filter === "approved") return e.state === "approved";
+      if (filter === "suggested") return e.state === "suggested";
+      if (filter === "favorites") return e.favorite;
+      if (filter === "worn") return e.timesWorn > 0;
+      return true;
+    })
+    // Most recently worn first, so the tab reads as a history.
+    .sort((a, b) => (filter === "worn" ? (b.lastWorn ?? "").localeCompare(a.lastWorn ?? "") : 0));
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8">
@@ -103,7 +129,9 @@ export function OutfitsPage() {
           message={
             filter === "favorites"
               ? "You haven't favorited any complete looks yet. Tap the heart on an outfit you love."
-              : "Nothing in this state yet — approve or explore looks from the Today page."
+              : filter === "worn"
+                ? "Nothing worn yet. Open a look and tap Wear today to start your history."
+                : "Nothing in this state yet — approve or explore looks from the Today page."
           }
           action={
             <Link to="/" className="label-caps underline underline-offset-4">
@@ -129,9 +157,21 @@ export function OutfitsPage() {
                 <div className="mt-2.5 flex items-baseline justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[13px] font-light leading-snug truncate">
-                      {e.name ?? (e.seedId ? outfitNumber(e.seedId) : "Approved look")}
+                      {e.name ??
+                        (e.seedId
+                          ? outfitNumber(e.seedId)
+                          : e.state === "worn"
+                            ? "Worn look"
+                            : "Approved look")}
                     </p>
-                    <p className="label-caps mt-0.5">{e.state}</p>
+                    {filter === "worn" ? (
+                      <p className="label-caps mt-0.5">
+                        {e.timesWorn}&times; worn
+                        {e.lastWorn && <> &middot; last {relativeDate(e.lastWorn)}</>}
+                      </p>
+                    ) : (
+                      <p className="label-caps mt-0.5">{e.state}</p>
+                    )}
                   </div>
                   <span className="display text-base">{formatScore(scored.breakdown.total)}</span>
                 </div>

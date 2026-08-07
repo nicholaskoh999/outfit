@@ -9,11 +9,13 @@ import { OutfitTriptych } from "@/components/OutfitTriptych";
 import { RecommendationCard } from "@/components/RecommendationCard";
 import { RefineSheet } from "@/components/RefineSheet";
 import { EmptyState } from "@/components/EmptyState";
+import { useSwipeLock } from "@/lib/useSwipeLock";
 
 export function TodayPage() {
   const { user } = useStore();
   const { ctx, setOccasion, setRefine, search } = useRecommendationContext();
   const [refineOpen, setRefineOpen] = useState(false);
+  const carouselRef = useSwipeLock<HTMLDivElement>();
 
   const activeRefinements = [
     ctx.refine.weather,
@@ -98,7 +100,10 @@ export function TodayPage() {
           ) : (
             <>
               {/* Mobile: horizontal swipe. Desktop: three columns. */}
-              <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible">
+              <div
+                ref={carouselRef}
+                className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory scroll-pl-5 no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 sm:scroll-pl-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible"
+              >
                 {recs.results.map((r) => (
                   <RecommendationCard key={r.role} role={r.role} outfit={r.outfit} search={search} />
                 ))}
