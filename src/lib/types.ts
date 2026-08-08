@@ -1,8 +1,11 @@
 /** Core domain types for outfit.nkmwei.de — frontend prototype. */
 
-export type Category = "top" | "bottom" | "shoe";
+export type Category = "top" | "bottom" | "shoe" | "sock";
 
-export type Fit = "slim" | "regular" | "loose" | "wide" | "oversized";
+/** Recommendation slots — socks are inventory-only and never a fourth piece. */
+export type OutfitSlot = "top" | "bottom" | "shoe";
+
+export type Fit = "slim" | "regular" | "relaxed" | "loose" | "wide" | "oversized";
 
 export type ItemStatus = "active" | "laundry" | "unavailable" | "retired" | "wishlist";
 
@@ -29,7 +32,8 @@ export type ColorFamily =
   | "beige"
   | "baby-blue"
   | "greenish-blue"
-  | "apricot";
+  | "apricot"
+  | "brown";
 
 export type ImageRole = "hero" | "front" | "back" | "worn" | "detail";
 

@@ -12,9 +12,9 @@ import { SwapPieceSheet } from "@/components/SwapPieceSheet";
 import { RejectSheet } from "@/components/RejectSheet";
 import { WearHistory } from "@/components/WearHistory";
 import { EmptyState } from "@/components/EmptyState";
-import type { Category, OutfitCombo } from "@/lib/types";
+import type { OutfitCombo, OutfitSlot } from "@/lib/types";
 
-const SLOT_LABEL: Record<Category, string> = { top: "Top", bottom: "Bottom", shoe: "Shoes" };
+const SLOT_LABEL: Record<OutfitSlot, string> = { top: "Top", bottom: "Bottom", shoe: "Shoes" };
 
 export function OutfitDetailPage() {
   const { outfitParam } = useParams<{ outfitParam: string }>();
@@ -29,7 +29,7 @@ export function OutfitDetailPage() {
     [outfitParam],
   );
 
-  const [swapSlot, setSwapSlot] = useState<Category | null>(null);
+  const [swapSlot, setSwapSlot] = useState<OutfitSlot | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
 
   if (!resolved) {
@@ -89,7 +89,7 @@ export function OutfitDetailPage() {
         {/* Garment stack */}
         <div className="space-y-px bg-line rounded-card overflow-hidden">
           {items.map((item, i) => {
-            const slot: Category = (["top", "bottom", "shoe"] as const)[i];
+            const slot: OutfitSlot = (["top", "bottom", "shoe"] as const)[i];
             return (
               <div key={item.id} className="relative bg-studio group">
                 <Link to={`/wardrobe/${item.id}`} className="block aspect-[4/3] overflow-hidden">

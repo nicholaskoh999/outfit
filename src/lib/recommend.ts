@@ -5,6 +5,7 @@ import type {
   Category,
   ItemStatus,
   OutfitCombo,
+  OutfitSlot,
   RecommendationContext,
   RecommendationResult,
   ScoredOutfit,
@@ -113,7 +114,7 @@ function buildHint(user: UserState): string {
  */
 export function swapAlternatives(
   combo: OutfitCombo,
-  slot: Category,
+  slot: OutfitSlot,
   ctx: RecommendationContext,
   user: UserState,
   now: Date = new Date(),

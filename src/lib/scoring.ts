@@ -133,7 +133,14 @@ function colorScore(items: WardrobeItem[]): number {
 /* Silhouette balance                                                  */
 /* ------------------------------------------------------------------ */
 
-const FIT_VOLUME: Record<Fit, number> = { slim: 1, regular: 2, loose: 3, wide: 4, oversized: 4 };
+const FIT_VOLUME: Record<Fit, number> = {
+  slim: 1,
+  regular: 2,
+  relaxed: 2.5,
+  loose: 3,
+  wide: 4,
+  oversized: 4,
+};
 
 function volume(item: WardrobeItem): number {
   return item.fit ? FIT_VOLUME[item.fit] : 2;

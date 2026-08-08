@@ -55,6 +55,16 @@ const PAIR_SCORES: Record<string, number> = {
   [pairId("baby-blue", "apricot")]: 5.2,
   [pairId("baby-blue", "charcoal")]: 8.4,
   [pairId("white", "baby-blue")]: 8.6,
+  // Brown (checked suit trousers) — earthy, pairs best with clean neutrals
+  [pairId("brown", "white")]: 8.8,
+  [pairId("brown", "black")]: 8.4,
+  [pairId("brown", "beige")]: 8.0,
+  [pairId("brown", "baby-blue")]: 8.2,
+  [pairId("brown", "charcoal")]: 7.6,
+  [pairId("brown", "grey")]: 7.2,
+  [pairId("brown", "greenish-blue")]: 6.6,
+  [pairId("brown", "apricot")]: 5.8,
+  [pairId("brown", "brown")]: 5.5,
 };
 
 export function pairScore(a: ColorFamily, b: ColorFamily): number {
@@ -81,6 +91,7 @@ export function pairLabel(a: ColorFamily, b: ColorFamily): string {
     "baby-blue": "baby blue",
     "greenish-blue": "greenish blue",
     apricot: "apricot",
+    brown: "brown",
   };
   return `${nice[a]} + ${nice[b]}`;
 }

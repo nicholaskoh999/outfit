@@ -19,6 +19,7 @@ const TABS: { value: Category | "all"; label: string }[] = [
   { value: "top", label: "Tops" },
   { value: "bottom", label: "Bottoms" },
   { value: "shoe", label: "Shoes" },
+  { value: "sock", label: "Socks" },
 ];
 
 export function WardrobePage() {
@@ -60,12 +61,12 @@ export function WardrobePage() {
       </div>
 
       {/* Category tabs */}
-      <div className="flex gap-6 border-b hairline mb-5">
+      <div className="flex gap-5 sm:gap-6 border-b hairline mb-5 overflow-x-auto no-scrollbar">
         {TABS.map((t) => (
           <button
             key={t.value}
             onClick={() => setTab(t.value)}
-            className={`pb-3 -mb-px text-[12px] uppercase tracking-[0.14em] border-b transition-colors cursor-pointer ${
+            className={`shrink-0 whitespace-nowrap pb-3 -mb-px text-[12px] uppercase tracking-[0.14em] border-b transition-colors cursor-pointer ${
               tab === t.value
                 ? "border-ink text-ink"
                 : "border-transparent text-ink-faint hover:text-ink-soft"

@@ -24,12 +24,15 @@ const SILHOUETTES: Record<string, string> = {
     "M40 34 L80 34 Q82 34 82 36 L86 76 Q86 79 83 79 L66 79 Q63 79 63 76 L60 56 L57 76 Q57 79 54 79 L37 79 Q34 79 34 76 L38 36 Q38 34 40 34 Z",
   sneaker:
     "M26 78 Q26 68 34 66 L58 60 Q64 58 68 62 L82 74 Q94 78 94 86 L94 90 Q94 93 91 93 L29 93 Q26 93 26 90 Z",
+  quarter_socks:
+    "M48 34 L72 34 Q74 34 74 36 L74 78 L84 92 Q90 100 84 106 Q77 112 69 107 L50 94 Q46 91 46 86 L46 36 Q46 34 48 34 Z",
 };
 
 function silhouetteFor(item: WardrobeItem): string {
   if (SILHOUETTES[item.type]) return SILHOUETTES[item.type];
   if (item.category === "top") return SILHOUETTES.tee;
   if (item.category === "bottom") return SILHOUETTES.pleated_pants;
+  if (item.category === "sock") return SILHOUETTES.quarter_socks;
   return SILHOUETTES.sneaker;
 }
 

@@ -4,18 +4,18 @@ import { useStore } from "@/lib/store";
 import { getItem } from "@/lib/data";
 import { formatScore } from "@/lib/format";
 import { ItemImage } from "./ItemImage";
-import type { Category, OutfitCombo, RecommendationContext } from "@/lib/types";
+import type { OutfitCombo, OutfitSlot, RecommendationContext } from "@/lib/types";
 
 interface SwapPieceSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   combo: OutfitCombo;
-  slot: Category | null;
+  slot: OutfitSlot | null;
   ctx: RecommendationContext;
   onSwap: (newCombo: OutfitCombo) => void;
 }
 
-const SLOT_LABEL: Record<Category, string> = { top: "Top", bottom: "Bottom", shoe: "Shoes" };
+const SLOT_LABEL: Record<OutfitSlot, string> = { top: "Top", bottom: "Bottom", shoe: "Shoes" };
 
 /**
  * Swapping one piece recomputes the resulting outfit's score in place —

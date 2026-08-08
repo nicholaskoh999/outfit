@@ -74,6 +74,34 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - asset quality: medium-low
 - notes: Model-worn source with busy background. Better clean product hero preferred if found later.
 
+## COS Relaxed Lightweight Cotton T-Shirt
+
+- id: `top-006`
+- slug: `cos-relaxed-lightweight-cotton-t-shirt-black`
+- brand: COS
+- category: top
+- type: tee
+- color: Black
+- fit: relaxed
+- status: active
+- hero: `/assets/tops/cos-relaxed-lightweight-cotton-t-shirt-black.webp`
+- asset quality: high
+- notes: Normalized 4:5 studio product image from update pack. Neutral versatile.
+
+## H&M COOLMAX Oversized Fit T-Shirt
+
+- id: `top-007`
+- slug: `hm-coolmax-oversized-fit-t-shirt-white`
+- brand: H&M
+- category: top
+- type: tee
+- color: White
+- fit: oversized
+- status: active
+- hero: `/assets/tops/hm-coolmax-oversized-fit-t-shirt-white.webp`
+- asset quality: high
+- notes: Normalized 4:5 studio product image from update pack. Hot-weather neutral white.
+
 ## Manfinity Pleated Pants
 
 - id: `bottom-001`
@@ -130,6 +158,48 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - asset quality: medium-low
 - notes: Model-worn source. Better clean or fuller hero preferred if found later.
 
+## H&M Loose Fit Suit Trousers
+
+- id: `bottom-006`
+- slug: `hm-loose-fit-suit-trousers-brown-checked`
+- brand: H&M
+- category: bottom
+- type: suit_trousers
+- color: Brown Checked
+- fit: loose
+- status: active
+- hero: `/assets/bottoms/hm-loose-fit-suit-trousers-brown-checked.webp`
+- asset quality: high
+- notes: Normalized 4:5 studio product image from update pack. Smart casual; lower for dirty factory floor.
+
+## H&M Regular Fit Sweatshorts
+
+- id: `bottom-007`
+- slug: `hm-regular-fit-sweatshorts-grey`
+- brand: H&M
+- category: bottom
+- type: sweatshorts
+- color: Grey
+- fit: regular
+- status: active
+- hero: `/assets/bottoms/hm-regular-fit-sweatshorts-grey.webp`
+- asset quality: high
+- notes: Normalized 4:5 studio product image from update pack. Relaxed, low formality, hot weather.
+
+## H&M Relaxed Fit Interlock Shorts
+
+- id: `bottom-008`
+- slug: `hm-relaxed-fit-interlock-shorts-black`
+- brand: H&M
+- category: bottom
+- type: shorts
+- color: Black
+- fit: relaxed
+- status: active
+- hero: `/assets/bottoms/hm-relaxed-fit-interlock-shorts-black.webp`
+- asset quality: high
+- notes: Normalized 4:5 studio product image from update pack. Versatile neutral; lower for customer visit.
+
 ## New Balance 530
 
 - id: `shoe-001`
@@ -140,6 +210,20 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - color: Silver Metallic / Summer Fog / NB Navy
 - fit: not specified
 - status: active
-- hero: `/assets/shoes/new-balance-530-silver-metallic-summer-fog-nb-navy.webp`
+- hero: `/assets/shoes/new-balance-530-silver-metallic.webp`
 - asset quality: high
-- notes: Clean side-profile product image. Neutral sporty retro-runner role.
+- notes: Hero replaced with normalized 4:5 studio image from update pack — same item, ID and slug preserved. Neutral sporty retro-runner role.
+
+## New Balance Lightweight Quarter Socks 3-Pack
+
+- id: `sock-001`
+- slug: `new-balance-lightweight-quarter-socks-3-pack-white`
+- brand: New Balance
+- category: sock
+- type: quarter_socks
+- color: White
+- fit: not specified
+- status: active
+- hero: `/assets/socks/new-balance-lightweight-quarter-socks-3-pack-white.webp`
+- asset quality: high
+- notes: Normalized 4:5 studio product image from update pack. Inventory only — not part of the top + bottom + shoe recommendation triptych.

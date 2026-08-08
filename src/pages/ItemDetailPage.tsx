@@ -132,7 +132,7 @@ export function ItemDetailPage() {
 
           {/* Metadata */}
           <div className="mb-8">
-            <MetaRow label="Category" value={item.category === "shoe" ? "Shoes" : item.category === "top" ? "Top" : "Bottom"} />
+            <MetaRow label="Category" value={{ top: "Top", bottom: "Bottom", shoe: "Shoes", sock: "Socks" }[item.category]} />
             <MetaRow label="Type" value={item.type.replace(/_/g, " ")} />
             <MetaRow label="Color" value={item.color.name} />
             <MetaRow label="Fit" value={item.fit ?? "Not specified"} />
