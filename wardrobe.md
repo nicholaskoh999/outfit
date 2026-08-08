@@ -154,8 +154,9 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - color: Black
 - fit: regular
 - status: active
-- hero: none yet — renders the silhouette fallback until a photo is supplied
-- notes: Hot-day workhorse (casual / shopping / travel / factory). Not tagged for formal or customer-visit contexts.
+- hero: `/assets/bottoms/himland-shorts-black.webp`
+- asset quality: medium-high
+- notes: Model-worn source normalized to the 4:5 studio canvas. Hot-day workhorse (casual / shopping / travel / factory). Not tagged for formal or customer-visit contexts.
 
 ## VENTUSAIL Linen-like Shorts
 

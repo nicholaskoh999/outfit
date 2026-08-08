@@ -77,9 +77,9 @@ lib/
   package's `wardrobe.json` verbatim; structured scoring metadata (color
   family/hex/tone, occasions, weather, practicality, styles) is merged in
   for the deterministic engine. `brand` and `fit` may be `null` when the
-  package didn't specify them. `HIMLAND Shorts — Black` (`bottom-004`) is
-  present with its original metadata but has no image yet — it renders the
-  SVG silhouette fallback until a hero photo is supplied.
+  package didn't specify them. `HIMLAND Shorts — Black` (`bottom-004`)
+  kept its original metadata; its hero photo was supplied later and is
+  normalized to the same 4:5 studio canvas as the rest of the wardrobe.
 - **`src/data/outfits.json`** — intentionally empty
   (`pending_user_approval`); seed outfits will be added only after the
   user approves candidate combinations. The Outfits page lists

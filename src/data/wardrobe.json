@@ -234,8 +234,12 @@
       "practicalityNotes": "Hot-day workhorse. Dark, quick-drying, hard to hurt.",
       "styles": ["relaxed", "street"],
       "status": "active",
-      "images": [],
-      "assetNotes": ["No image supplied yet — renders the silhouette fallback until a hero photo arrives."]
+      "images": [{ "type": "hero", "src": "/assets/bottoms/himland-shorts-black.webp" }],
+      "asset_quality": "medium-high",
+      "assetNotes": [
+        "Model-worn source, normalized to 4:5 studio canvas.",
+        "Replaced the silhouette placeholder with the supplied product photo."
+      ]
     },
     {
       "id": "bottom-005",
