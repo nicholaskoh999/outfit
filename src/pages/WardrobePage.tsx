@@ -57,7 +57,9 @@ export function WardrobePage() {
     <div className="mx-auto max-w-6xl px-5 sm:px-8">
       <div className="pt-8 sm:pt-12 pb-6 flex items-end justify-between">
         <h1 className="display text-3xl sm:text-4xl">Wardrobe</h1>
-        <span className="label-caps">{items.length} pieces</span>
+        <span className="label-caps">
+          {items.length} piece{items.length === 1 ? "" : "s"}
+        </span>
       </div>
 
       {/* Category tabs */}

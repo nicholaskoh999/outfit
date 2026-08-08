@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "@/lib/store";
 import { recommend } from "@/lib/recommend";
@@ -14,6 +14,7 @@ export function TodayPage() {
   const { user } = useStore();
   const { ctx, setOccasion, setRefine, search } = useRecommendationContext();
   const [refineOpen, setRefineOpen] = useState(false);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
 
   const activeRefinements = [
     ctx.refine.weather,
@@ -31,6 +32,63 @@ export function TodayPage() {
     () => (ctx.occasion ? recommend(ctx, user) : null),
     [ctx, user],
   );
+
+  // One-gesture-one-card lock for the mobile carousel. `snap-always` on each
+  // card handles this natively in modern engines; this is the JS backstop for
+  // fast flings that would otherwise skip past a card — it clamps the settled
+  // position to ±1 card from where the gesture started. Vertical page
+  // scrolling and slow drags are untouched (it only corrects after momentum
+  // ends, and only when the index moved more than one).
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    let startIndex = 0;
+    let dragging = false;
+    let timer: number | undefined;
+
+    const centers = () =>
+      [...el.children].map((c) => {
+        const child = c as HTMLElement;
+        return child.offsetLeft + child.offsetWidth / 2;
+      });
+    const indexAt = () => {
+      const center = el.scrollLeft + el.clientWidth / 2;
+      let best = 0;
+      centers().forEach((c, i, all) => {
+        if (Math.abs(c - center) < Math.abs(all[best] - center)) best = i;
+      });
+      return best;
+    };
+    const settle = () => {
+      if (dragging) return;
+      const idx = indexAt();
+      const clamped = Math.min(startIndex + 1, Math.max(startIndex - 1, idx));
+      if (clamped !== idx) {
+        el.scrollTo({ left: centers()[clamped] - el.clientWidth / 2, behavior: "smooth" });
+      }
+      startIndex = clamped;
+    };
+    const onTouchStart = () => {
+      dragging = true;
+      startIndex = indexAt();
+    };
+    const onTouchEnd = () => {
+      dragging = false;
+    };
+    const onScroll = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(settle, 90);
+    };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("scroll", onScroll);
+      window.clearTimeout(timer);
+    };
+  }, [recs]);
 
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
@@ -98,7 +156,10 @@ export function TodayPage() {
           ) : (
             <>
               {/* Mobile: horizontal swipe. Desktop: three columns. */}
-              <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible">
+              <div
+                ref={carouselRef}
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible"
+              >
                 {recs.results.map((r) => (
                   <RecommendationCard key={r.role} role={r.role} outfit={r.outfit} search={search} />
                 ))}

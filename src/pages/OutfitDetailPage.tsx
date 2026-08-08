@@ -64,7 +64,11 @@ export function OutfitDetailPage() {
 
   const handleWearToday = () => {
     const entry = store.wearToday(combo);
-    toast("Saved to wear history", { label: "Undo", onAction: () => store.undoWear(entry) });
+    toast(
+      "Worn today",
+      { label: "Undo", onAction: () => store.undoWear(entry) },
+      { label: "View wear history →", onAction: () => navigate("/outfits?filter=worn") },
+    );
   };
 
   return (
