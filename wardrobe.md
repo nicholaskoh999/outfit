@@ -228,6 +228,21 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - asset quality: high
 - notes: Hero replaced with normalized 4:5 studio image from update pack — same item, ID and slug preserved. Neutral sporty retro-runner role.
 
+## FILA Sleek Tender Linear
+
+- id: `shoe-002`
+- slug: `fila-sleek-tender-linear-black`
+- brand: FILA
+- category: shoe
+- type: sandal (slide)
+- color: Black
+- fit: not specified
+- status: active
+- hero: `/assets/shoes/fila-sleek-tender-linear-black.webp`
+- asset quality: high
+- ratings: comfort 9/10 · daily use 10/10 · fashion 8.5/10
+- notes: Minimal black slide — Korean casual / clean streetwear. Hot-weather and travel default (Aeon, food court, hotel, Bangkok). Open-toe, so excluded from factory and customer-visit occasions.
+
 ## New Balance Lightweight Quarter Socks 3-Pack
 
 - id: `sock-001`

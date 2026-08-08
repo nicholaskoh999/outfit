@@ -353,6 +353,29 @@
       ]
     },
     {
+      "id": "shoe-002",
+      "slug": "fila-sleek-tender-linear-black",
+      "name": "FILA Sleek Tender Linear",
+      "brand": "FILA",
+      "category": "shoe",
+      "type": "sandal",
+      "color": { "name": "Black", "family": "black", "hex": "#1c1c1e", "tone": "dark" },
+      "fit": null,
+      "material": "Synthetic leather strap / moulded EVA footbed",
+      "occasions": ["casual", "shopping", "travel", "dinner"],
+      "weather": ["hot", "humid", "rainy", "indoor_ac"],
+      "practicality": 9,
+      "practicalityNotes": "Comfort 9/10, daily use 10/10, fashion 8.5/10. The hot-weather default — minimal black slide that shrugs off rain and reads clean with shorts or relaxed pants. Open-toe, so not for the factory floor or a customer visit.",
+      "styles": ["relaxed", "street", "clean"],
+      "status": "active",
+      "images": [{ "type": "hero", "src": "/assets/shoes/fila-sleek-tender-linear-black.webp" }],
+      "asset_quality": "high",
+      "assetNotes": [
+        "Clean three-quarter product shot, normalized to the 4:5 studio canvas.",
+        "Korean-casual / clean-streetwear slide; summer counterpart to the NB530."
+      ]
+    },
+    {
       "id": "sock-001",
       "slug": "new-balance-lightweight-quarter-socks-3-pack-white",
       "name": "New Balance Lightweight Quarter Socks 3-Pack",

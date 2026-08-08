@@ -19,15 +19,15 @@ const NEUTRAL_CTX = {
 } as const;
 
 describe("wardrobe inventory", () => {
-  it("has exactly 17 items", () => {
-    expect(wardrobe).toHaveLength(17);
+  it("has exactly 18 items", () => {
+    expect(wardrobe).toHaveLength(18);
   });
 
-  it("has 7 tops / 8 bottoms / 1 shoe / 1 sock", () => {
+  it("has 7 tops / 8 bottoms / 2 shoes / 1 sock", () => {
     const count = (c: string) => wardrobe.filter((i) => i.category === c).length;
     expect(count("top")).toBe(7);
     expect(count("bottom")).toBe(8);
-    expect(count("shoe")).toBe(1);
+    expect(count("shoe")).toBe(2);
     expect(count("sock")).toBe(1);
   });
 
@@ -66,7 +66,7 @@ describe("wardrobe inventory", () => {
 describe("recommendation engine", () => {
   it("generates only top + bottom + shoe combinations — socks never enter", () => {
     const candidates = allCandidates(NEUTRAL_CTX, EMPTY_USER);
-    expect(candidates.length).toBe(7 * 8 * 1);
+    expect(candidates.length).toBe(7 * 8 * 2);
     const byId = new Map(wardrobe.map((i) => [i.id, i]));
     for (const c of candidates) {
       expect(byId.get(c.combo.top)?.category).toBe("top");
@@ -84,5 +84,36 @@ describe("recommendation engine", () => {
   it("HIMLAND participates in candidate combinations", () => {
     const candidates = allCandidates(NEUTRAL_CTX, EMPTY_USER);
     expect(candidates.some((c) => c.combo.bottom === "bottom-004")).toBe(true);
+  });
+
+  it("FILA slides participate as a shoe option", () => {
+    const candidates = allCandidates(NEUTRAL_CTX, EMPTY_USER);
+    expect(candidates.some((c) => c.combo.shoe === "shoe-002")).toBe(true);
+  });
+
+  it("FILA slides are not recommended for factory or customer visits", () => {
+    const fila = wardrobe.find((i) => i.id === "shoe-002")!;
+    expect(fila.occasions).not.toContain("factory");
+    expect(fila.occasions).not.toContain("customer-visit");
+  });
+
+  it("the requested FILA pairings all rank in the top half of its combinations", () => {
+    // Pairing intent is expressed through metadata, not hard-coded scoring —
+    // this asserts the metadata actually produces the intended affinities.
+    const filaCombos = allCandidates(NEUTRAL_CTX, EMPTY_USER).filter(
+      (c) => c.combo.shoe === "shoe-002",
+    );
+    const median = filaCombos[Math.floor(filaCombos.length / 2)].breakdown.total;
+    const requested: [string, string][] = [
+      ["top-006", "bottom-007"], // COS black tee + grey sweatshorts
+      ["top-006", "bottom-008"], // COS black tee + black interlock shorts
+      ["top-007", "bottom-007"], // H&M COOLMAX white + grey sweatshorts
+      ["top-007", "bottom-008"], // H&M COOLMAX white + black interlock shorts
+    ];
+    for (const [top, bottom] of requested) {
+      const combo = filaCombos.find((c) => c.combo.top === top && c.combo.bottom === bottom);
+      expect(combo, `${top}+${bottom} missing`).toBeDefined();
+      expect(combo!.breakdown.total).toBeGreaterThanOrEqual(median);
+    }
   });
 });

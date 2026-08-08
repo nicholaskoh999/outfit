@@ -140,18 +140,28 @@ await page.goto(BASE + "/wardrobe", { waitUntil: "networkidle" });
 const pieces = await page.evaluate(
   () => document.body.innerText.match(/(\d+) piece/i)?.[1],
 );
-log("wardrobe shows 17 pieces", pieces === "17", `pieces=${pieces}`);
-for (const [tab, n] of [["Tops", 7], ["Bottoms", 8], ["Socks", 1], ["Shoes", 1]]) {
+log("wardrobe shows 18 pieces", pieces === "18", `pieces=${pieces}`);
+for (const [tab, n] of [["Tops", 7], ["Bottoms", 8], ["Socks", 1], ["Shoes", 2]]) {
   await page.click(`button:text-is("${tab}")`);
   await page.waitForTimeout(200);
   const count = await page.evaluate(() => document.body.innerText.match(/(\d+) piece/i)?.[1]);
   log(`${tab} tab count = ${n}`, count === String(n), `count=${count}`);
 }
+await page.click('button:text-is("Socks")');
+await page.waitForTimeout(200);
 const singularOk = await page.evaluate(() => {
   const t = document.body.innerText;
   return /1 piece\b/i.test(t) && !/1 pieces/i.test(t);
 });
 log("singular label reads '1 piece' on a one-item tab", singularOk);
+
+await page.goto(BASE + "/wardrobe/shoe-002", { waitUntil: "networkidle" });
+const filaSrc = await page.evaluate(() => document.querySelector("img")?.getAttribute("src"));
+log(
+  "FILA slides use their real image",
+  filaSrc === "/assets/shoes/fila-sleek-tender-linear-black.webp",
+  String(filaSrc),
+);
 
 await page.goto(BASE + "/wardrobe/bottom-004", { waitUntil: "networkidle" });
 const himlandSrc = await page.evaluate(() => document.querySelector("img")?.getAttribute("src"));
