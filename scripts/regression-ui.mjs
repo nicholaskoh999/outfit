@@ -163,6 +163,27 @@ log(
 
 // NB530 uniqueness is covered by the vitest data suite (tests/regression.test.ts).
 
+// --- Header logo navigates home from every route --------------------------
+let logoOk = true;
+for (const route of [
+  "/outfits",
+  "/wardrobe",
+  "/favorites",
+  "/wardrobe/bottom-004",
+  "/outfits/top-001_bottom-004_shoe-001",
+  "/outfits?filter=worn",
+]) {
+  await page.goto(BASE + route, { waitUntil: "networkidle" });
+  await page.click('header a:has-text("OUTFIT")');
+  await page.waitForTimeout(150);
+  const path = await page.evaluate(() => location.pathname + location.search);
+  if (path !== "/") {
+    logoOk = false;
+    log(`logo click from ${route}`, false, `landed on ${path}`);
+  }
+}
+log("OUTFIT logo navigates home from every route", logoOk);
+
 // --- Overflow sweep -------------------------------------------------------
 let anyOverflow = false;
 for (const route of ["/", "/wardrobe", "/outfits?filter=worn", "/favorites", "/wardrobe/bottom-004"]) {
