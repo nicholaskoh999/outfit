@@ -78,7 +78,8 @@ lib/
   family/hex/tone, occasions, weather, practicality, styles) is merged in
   for the deterministic engine. `brand` and `fit` may be `null` when the
   package didn't specify them. `HIMLAND Shorts — Black` (`bottom-004`) is
-  intentionally absent — no image was supplied.
+  present with its original metadata but has no image yet — it renders the
+  SVG silhouette fallback until a hero photo is supplied.
 - **`src/data/outfits.json`** — intentionally empty
   (`pending_user_approval`); seed outfits will be added only after the
   user approves candidate combinations. The Outfits page lists

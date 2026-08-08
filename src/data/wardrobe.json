@@ -218,6 +218,26 @@
       ]
     },
     {
+      "id": "bottom-004",
+      "slug": "himland-shorts-black",
+      "name": "HIMLAND Shorts",
+      "brand": "HIMLAND",
+      "category": "bottom",
+      "type": "shorts",
+      "color": { "name": "Black", "family": "black", "hex": "#232325", "tone": "dark" },
+      "fit": "regular",
+      "material": "Nylon blend",
+      "size": "M",
+      "occasions": ["casual", "shopping", "travel", "factory"],
+      "weather": ["hot", "humid"],
+      "practicality": 8,
+      "practicalityNotes": "Hot-day workhorse. Dark, quick-drying, hard to hurt.",
+      "styles": ["relaxed", "street"],
+      "status": "active",
+      "images": [],
+      "assetNotes": ["No image supplied yet — renders the silhouette fallback until a hero photo arrives."]
+    },
+    {
       "id": "bottom-005",
       "slug": "ventusail-linen-like-shorts-white",
       "name": "VENTUSAIL Linen-like Shorts",

@@ -18,8 +18,8 @@ const TABS: { value: Category | "all"; label: string }[] = [
   { value: "all", label: "All" },
   { value: "top", label: "Tops" },
   { value: "bottom", label: "Bottoms" },
-  { value: "shoe", label: "Shoes" },
   { value: "sock", label: "Socks" },
+  { value: "shoe", label: "Shoes" },
 ];
 
 export function WardrobePage() {

@@ -144,6 +144,19 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - asset quality: medium
 - notes: Full-length model-worn source. Wash and loose straight silhouette are clearly visible.
 
+## HIMLAND Shorts
+
+- id: `bottom-004`
+- slug: `himland-shorts-black`
+- brand: HIMLAND
+- category: bottom
+- type: shorts
+- color: Black
+- fit: regular
+- status: active
+- hero: none yet — renders the silhouette fallback until a photo is supplied
+- notes: Hot-day workhorse (casual / shopping / travel / factory). Not tagged for formal or customer-visit contexts.
+
 ## VENTUSAIL Linen-like Shorts
 
 - id: `bottom-005`
