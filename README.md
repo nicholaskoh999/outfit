@@ -71,7 +71,9 @@ lib/
 ## Data model
 
 - **`src/data/wardrobe.json`** — canonical wardrobe seed built from the
-  real asset package (5 tops, 4 bottoms, 1 shoe — 10 items, all `active`).
+  real asset package plus later additions (9 tops, 8 bottoms, 2 shoes,
+  1 sock — 20 items, all `active`; socks are inventory-only and never
+  enter a recommendation).
   Identity/asset fields (ids, slugs, names, brands, types, colors, fits,
   statuses, image paths, `asset_quality`/`assetNotes`) come from the
   package's `wardrobe.json` verbatim; structured scoring metadata (color
@@ -99,6 +101,9 @@ balance 10% · practicality 10%, minus a **dynamic recency penalty**
 
 - Colour harmony is an explicit pair matrix (safe pairs like charcoal+black
   score highest; charcoal+apricot is allowed but scored as "forward").
+  Colour pieces such as purple and pink are rated highest against the
+  useful neutrals (black, charcoal, grey, white) and deliberately
+  conservatively against other colours and against themselves.
 - Taste learns locally: exact approvals/rejections, pair-level affinity
   from decision history, favourites, and reject-reason nudges.
 - Practicality reacts to context: factory **floor** penalises light tones
@@ -134,7 +139,11 @@ All garment imagery is real photography from the asset package
 on a warm off-white canvas). Images render with `object-contain` on the
 `studio` background token (`#f7f6f2`, sampled from the photo canvas), so
 garments are never cropped — non-4:5 layout cells letterbox seamlessly.
-Some sources are model-worn photos, used as supplied. The SVG silhouette
+Some sources are model-worn photos, used as supplied; supplied images that
+arrive at another size or aspect ratio are contained (never cropped, never
+stretched) on the studio canvas, so the letterbox bars match the page
+background. Where a source is smaller than 1200×1500 it is upscaled and the
+item's `assetNotes` records it. The SVG silhouette
 in `ItemImage` remains only as a fallback for future items added without
 imagery.
 

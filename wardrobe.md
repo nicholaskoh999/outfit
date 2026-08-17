@@ -2,7 +2,14 @@
 
 Canonical seed inventory prepared from the images supplied in this conversation.
 
+20 items — 9 tops, 8 bottoms, 2 shoes, 1 sock.
+
 All current items are `active`. Individual legacy item scores are intentionally omitted.
+
+Where a garment spec was never supplied (fit, material, size) it is recorded as
+"not specified" rather than inferred from the product photo. Scoring metadata
+(occasions, weather, practicality, styles) is an editorial judgement of the
+recommendation engine, not a factual product claim.
 
 ## FOG Essentials 1977 Tee
 
@@ -101,6 +108,38 @@ All current items are `active`. Individual legacy item scores are intentionally 
 - hero: `/assets/tops/hm-coolmax-oversized-fit-t-shirt-white.webp`
 - asset quality: high
 - notes: Normalized 4:5 studio product image from update pack. Hot-weather neutral white.
+
+## Turbo BT-T068 Essential Oversize T-Shirt
+
+- id: `top-008`
+- slug: `turbo-bt-t068-essential-oversize-t-shirt-purple`
+- brand: TURBO
+- category: top
+- type: tee
+- color: Purple (dusty mauve, `#a78a98`, mid tone)
+- fit: oversized
+- material: not specified
+- size: not specified
+- status: active
+- hero: `/assets/tops/turbo-bt-t068-essential-oversize-t-shirt-purple.webp`
+- asset quality: medium-high
+- notes: Supplied studio product image, normalized to the 4:5 studio canvas. Source was 600×750, so the hero is a 2× upscale — softer than the other tops. Plain mid-tone colour piece; scores best anchored by black, charcoal, grey or white.
+
+## STWD Short Sleeve Sweatshirt
+
+- id: `top-009`
+- slug: `stwd-short-sleeve-sweatshirt-pink`
+- brand: STWD
+- category: top
+- type: short_sleeve_sweatshirt
+- color: Pink (pale, `#ecd7d9`, light tone)
+- fit: not specified (`null` — not inferred from the photo)
+- material: not specified
+- size: not specified
+- status: active
+- hero: `/assets/tops/stwd-short-sleeve-sweatshirt-pink.webp`
+- asset quality: high
+- notes: Supplied studio product image, normalized to the 4:5 studio canvas. Light tone shows marks, so it is not tagged for factory or customer-visit contexts; sweatshirt weight favours air-conditioned rooms over humid afternoons.
 
 ## Manfinity Pleated Pants
 

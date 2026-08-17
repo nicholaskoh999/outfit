@@ -65,6 +65,32 @@ const PAIR_SCORES: Record<string, number> = {
   [pairId("brown", "greenish-blue")]: 6.6,
   [pairId("brown", "apricot")]: 5.8,
   [pairId("brown", "brown")]: 5.5,
+  // Purple (dusty mauve tee) — a colour piece that behaves best anchored by a
+  // neutral bottom. Other colours are allowed but deliberately unrewarded.
+  [pairId("purple", "black")]: 9.4,
+  [pairId("purple", "charcoal")]: 9.2,
+  [pairId("purple", "white")]: 9.0,
+  [pairId("purple", "grey")]: 8.8,
+  [pairId("purple", "beige")]: 7.6,
+  [pairId("purple", "brown")]: 7.0,
+  [pairId("purple", "baby-blue")]: 6.8,
+  [pairId("purple", "greenish-blue")]: 6.2,
+  [pairId("purple", "apricot")]: 5.4,
+  [pairId("purple", "purple")]: 5.5,
+  // Pink (pale) — same logic; light pink needs a darker or cleaner anchor,
+  // and pale-on-pale washes out.
+  [pairId("pink", "black")]: 9.4,
+  [pairId("pink", "charcoal")]: 9.2,
+  [pairId("pink", "grey")]: 9.0,
+  [pairId("pink", "white")]: 8.6,
+  [pairId("pink", "beige")]: 7.4,
+  [pairId("pink", "brown")]: 7.2,
+  [pairId("pink", "baby-blue")]: 6.6,
+  [pairId("pink", "greenish-blue")]: 6.0,
+  [pairId("pink", "apricot")]: 5.4,
+  [pairId("pink", "pink")]: 5.0,
+  // Two statement colours together — tonally related, still a deliberate look.
+  [pairId("purple", "pink")]: 6.2,
 };
 
 export function pairScore(a: ColorFamily, b: ColorFamily): number {
@@ -92,6 +118,8 @@ export function pairLabel(a: ColorFamily, b: ColorFamily): string {
     "greenish-blue": "greenish blue",
     apricot: "apricot",
     brown: "brown",
+    purple: "purple",
+    pink: "pink",
   };
   return `${nice[a]} + ${nice[b]}`;
 }

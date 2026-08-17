@@ -140,8 +140,8 @@ await page.goto(BASE + "/wardrobe", { waitUntil: "networkidle" });
 const pieces = await page.evaluate(
   () => document.body.innerText.match(/(\d+) piece/i)?.[1],
 );
-log("wardrobe shows 18 pieces", pieces === "18", `pieces=${pieces}`);
-for (const [tab, n] of [["Tops", 7], ["Bottoms", 8], ["Socks", 1], ["Shoes", 2]]) {
+log("wardrobe shows 20 pieces", pieces === "20", `pieces=${pieces}`);
+for (const [tab, n] of [["Tops", 9], ["Bottoms", 8], ["Socks", 1], ["Shoes", 2]]) {
   await page.click(`button:text-is("${tab}")`);
   await page.waitForTimeout(200);
   const count = await page.evaluate(() => document.body.innerText.match(/(\d+) piece/i)?.[1]);
@@ -169,6 +169,59 @@ log(
   "HIMLAND uses the real image",
   himlandSrc === "/assets/bottoms/himland-shorts-black.webp",
   String(himlandSrc),
+);
+
+// --- The two new tops -----------------------------------------------------
+for (const [id, src, name] of [
+  ["top-008", "/assets/tops/turbo-bt-t068-essential-oversize-t-shirt-purple.webp", "Turbo BT-T068"],
+  ["top-009", "/assets/tops/stwd-short-sleeve-sweatshirt-pink.webp", "STWD Short Sleeve Sweatshirt"],
+]) {
+  await page.goto(BASE + `/wardrobe/${id}`, { waitUntil: "networkidle" });
+  const detail = await page.evaluate(() => {
+    const img = document.querySelector("img");
+    return {
+      src: img?.getAttribute("src"),
+      fit: getComputedStyle(img).objectFit,
+      body: document.body.innerText,
+    };
+  });
+  log(`${id} detail page uses its real image`, detail.src === src, String(detail.src));
+  log(`${id} image is object-contain (never cropped)`, detail.fit === "contain", detail.fit);
+  log(`${id} detail page shows the garment name`, detail.body.includes(name));
+}
+
+// Both pieces are searchable and appear under Tops.
+await page.goto(BASE + "/wardrobe", { waitUntil: "networkidle" });
+await page.click('button:text-is("Tops")');
+await page.waitForTimeout(200);
+const topsBody = await page.evaluate(() => document.body.innerText);
+log("Turbo tee listed under Tops", /Turbo BT-T068/i.test(topsBody));
+log("STWD sweatshirt listed under Tops", /STWD Short Sleeve Sweatshirt/i.test(topsBody));
+
+for (const [term, expected] of [
+  ["turbo", 1],
+  ["stwd", 1],
+  ["pink", 1],
+]) {
+  await page.fill('input[placeholder="Search pieces…"]', term);
+  await page.waitForTimeout(250);
+  const n = await page.evaluate(() => document.body.innerText.match(/(\d+) piece/i)?.[1]);
+  log(`search "${term}" matches ${expected} piece`, n === String(expected), `count=${n}`);
+}
+await page.fill('input[placeholder="Search pieces…"]', "");
+
+// Card imagery keeps the 4:5 ratio on the grid.
+const ratios = await page.evaluate(() =>
+  [...document.querySelectorAll("img")].map((img) => {
+    const cell = img.closest(".aspect-\\[4\\/5\\]") ?? img.parentElement;
+    const r = cell.getBoundingClientRect();
+    return +(r.width / r.height).toFixed(3);
+  }),
+);
+log(
+  "wardrobe card cells are all 4:5",
+  ratios.length > 0 && ratios.every((r) => Math.abs(r - 0.8) < 0.02),
+  `ratios=${[...new Set(ratios)].join(",")}`,
 );
 
 // NB530 uniqueness is covered by the vitest data suite (tests/regression.test.ts).
