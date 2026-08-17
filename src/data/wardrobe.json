@@ -149,6 +149,53 @@
       "assetNotes": ["Normalized 4:5 studio product image from update pack."]
     },
     {
+      "id": "top-008",
+      "slug": "turbo-bt-t068-essential-oversize-t-shirt-purple",
+      "name": "Turbo BT-T068 Essential Oversize T-Shirt",
+      "brand": "TURBO",
+      "category": "top",
+      "type": "tee",
+      "color": { "name": "Purple", "family": "purple", "hex": "#a78a98", "tone": "mid" },
+      "fit": "oversized",
+      "occasions": ["casual", "shopping", "dinner", "night-out", "travel", "factory"],
+      "weather": ["hot", "humid", "indoor_ac"],
+      "practicality": 7,
+      "practicalityNotes": "Mid-tone dusty purple is forgiving with marks. Plain tee, so it behaves like a neutral in practice.",
+      "styles": ["clean", "relaxed", "street"],
+      "status": "active",
+      "images": [
+        { "type": "hero", "src": "/assets/tops/turbo-bt-t068-essential-oversize-t-shirt-purple.webp" }
+      ],
+      "asset_quality": "medium-high",
+      "assetNotes": [
+        "Supplied studio product image, normalized to the 4:5 studio canvas.",
+        "Source was 600×750, so the hero is a 2× upscale — softer than the other tops.",
+        "Preserve the dusty mauve-purple tone."
+      ]
+    },
+    {
+      "id": "top-009",
+      "slug": "stwd-short-sleeve-sweatshirt-pink",
+      "name": "STWD Short Sleeve Sweatshirt",
+      "brand": "STWD",
+      "category": "top",
+      "type": "short_sleeve_sweatshirt",
+      "color": { "name": "Pink", "family": "pink", "hex": "#ecd7d9", "tone": "light" },
+      "fit": null,
+      "occasions": ["casual", "shopping", "dinner", "night-out", "travel"],
+      "weather": ["hot", "indoor_ac"],
+      "practicality": 5,
+      "practicalityNotes": "Light pink shows marks quickly. Sweatshirt weight suits air-conditioned rooms better than humid afternoons.",
+      "styles": ["relaxed", "street"],
+      "status": "active",
+      "images": [{ "type": "hero", "src": "/assets/tops/stwd-short-sleeve-sweatshirt-pink.webp" }],
+      "asset_quality": "high",
+      "assetNotes": [
+        "Supplied studio product image, normalized to the 4:5 studio canvas.",
+        "Fit, material and size were not supplied — fit is null rather than guessed."
+      ]
+    },
+    {
       "id": "bottom-001",
       "slug": "manfinity-pleated-pants-black",
       "name": "Manfinity Pleated Pants",

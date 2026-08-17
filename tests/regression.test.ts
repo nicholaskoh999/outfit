@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { wardrobe } from "@/lib/data";
+import { isNeutral, pairLabel, pairScore } from "@/lib/colors";
 import { allCandidates } from "@/lib/recommend";
-import type { UserState } from "@/lib/types";
+import type { ColorFamily, UserState } from "@/lib/types";
 
 const EMPTY_USER: UserState = {
   favoriteLooks: [],
@@ -19,13 +20,13 @@ const NEUTRAL_CTX = {
 } as const;
 
 describe("wardrobe inventory", () => {
-  it("has exactly 18 items", () => {
-    expect(wardrobe).toHaveLength(18);
+  it("has exactly 20 items", () => {
+    expect(wardrobe).toHaveLength(20);
   });
 
-  it("has 7 tops / 8 bottoms / 2 shoes / 1 sock", () => {
+  it("has 9 tops / 8 bottoms / 2 shoes / 1 sock", () => {
     const count = (c: string) => wardrobe.filter((i) => i.category === c).length;
-    expect(count("top")).toBe(7);
+    expect(count("top")).toBe(9);
     expect(count("bottom")).toBe(8);
     expect(count("shoe")).toBe(2);
     expect(count("sock")).toBe(1);
@@ -54,6 +55,50 @@ describe("wardrobe inventory", () => {
     expect(existsSync(join(__dirname, "..", "public", hero!.src))).toBe(true);
   });
 
+  it("Turbo purple tee (top-008) is present with its real hero image", () => {
+    const turbo = wardrobe.find((i) => i.id === "top-008");
+    expect(turbo?.name).toBe("Turbo BT-T068 Essential Oversize T-Shirt");
+    expect(turbo?.brand).toBe("TURBO");
+    expect(turbo?.slug).toBe("turbo-bt-t068-essential-oversize-t-shirt-purple");
+    expect(turbo?.category).toBe("top");
+    expect(turbo?.type).toBe("tee");
+    expect(turbo?.fit).toBe("oversized");
+    expect(turbo?.status).toBe("active");
+    expect(turbo?.color.family).toBe("purple");
+    const hero = turbo?.images.find((img) => img.type === "hero");
+    expect(hero?.src).toBe("/assets/tops/turbo-bt-t068-essential-oversize-t-shirt-purple.webp");
+    expect(existsSync(join(__dirname, "..", "public", hero!.src))).toBe(true);
+  });
+
+  it("STWD pink sweatshirt (top-009) is present with its real hero image", () => {
+    const stwd = wardrobe.find((i) => i.id === "top-009");
+    expect(stwd?.name).toBe("STWD Short Sleeve Sweatshirt");
+    expect(stwd?.brand).toBe("STWD");
+    expect(stwd?.slug).toBe("stwd-short-sleeve-sweatshirt-pink");
+    expect(stwd?.category).toBe("top");
+    expect(stwd?.type).toBe("short_sleeve_sweatshirt");
+    expect(stwd?.status).toBe("active");
+    expect(stwd?.color.family).toBe("pink");
+    const hero = stwd?.images.find((img) => img.type === "hero");
+    expect(hero?.src).toBe("/assets/tops/stwd-short-sleeve-sweatshirt-pink.webp");
+    expect(existsSync(join(__dirname, "..", "public", hero!.src))).toBe(true);
+  });
+
+  it("does not invent unsupplied specs for the two new tops", () => {
+    // fit/material/size were never supplied for the STWD sweatshirt, and no
+    // material, size, price or purchase date was supplied for either piece.
+    const stwd = wardrobe.find((i) => i.id === "top-009")!;
+    expect(stwd.fit).toBeNull();
+    expect(stwd.material).toBeUndefined();
+    expect(stwd.size).toBeUndefined();
+    for (const id of ["top-008", "top-009"]) {
+      const item = wardrobe.find((i) => i.id === id)!;
+      expect(item.material, id).toBeUndefined();
+      expect(item.size, id).toBeUndefined();
+      expect(item.purchase, id).toBeUndefined();
+    }
+  });
+
   it("every referenced image asset exists on disk", () => {
     for (const item of wardrobe) {
       for (const img of item.images) {
@@ -63,10 +108,93 @@ describe("wardrobe inventory", () => {
   });
 });
 
+describe("purple / pink colour handling", () => {
+  const ALL_FAMILIES: ColorFamily[] = [
+    "black",
+    "charcoal",
+    "grey",
+    "white",
+    "beige",
+    "baby-blue",
+    "greenish-blue",
+    "apricot",
+    "brown",
+    "purple",
+    "pink",
+  ];
+  const NEW_FAMILIES: ColorFamily[] = ["purple", "pink"];
+  // pairScore()'s fallback values — an explicit rating must not equal these.
+  const FALLBACK_SAME = 6.0;
+  const FALLBACK_MIXED_NEUTRAL = 7.0;
+  const FALLBACK_NON_NEUTRAL = 5.0;
+
+  it("rates every pairing with purple and pink explicitly, in both directions", () => {
+    for (const nf of NEW_FAMILIES) {
+      for (const other of ALL_FAMILIES) {
+        const score = pairScore(nf, other);
+        expect(score, `${nf}+${other}`).toBe(pairScore(other, nf));
+        expect(score, `${nf}+${other}`).toBeGreaterThan(0);
+        expect(score, `${nf}+${other}`).toBeLessThanOrEqual(10);
+        const fallback =
+          nf === other
+            ? FALLBACK_SAME
+            : isNeutral(other)
+              ? FALLBACK_MIXED_NEUTRAL
+              : FALLBACK_NON_NEUTRAL;
+        expect(score, `${nf}+${other} fell through to the default`).not.toBe(fallback);
+      }
+    }
+  });
+
+  it("anchors purple and pink on the useful neutrals", () => {
+    for (const nf of NEW_FAMILIES) {
+      for (const neutral of ["black", "charcoal", "grey", "white"] as ColorFamily[]) {
+        expect(pairScore(nf, neutral), `${nf}+${neutral}`).toBeGreaterThanOrEqual(8.5);
+      }
+      // Less obvious pairings stay deliberately more conservative.
+      for (const loud of ["apricot", "greenish-blue"] as ColorFamily[]) {
+        expect(pairScore(nf, loud), `${nf}+${loud}`).toBeLessThan(
+          pairScore(nf, "grey"),
+        );
+      }
+      // Tonal flooding is never the recommended move.
+      expect(pairScore(nf, nf), `${nf}+${nf}`).toBeLessThan(pairScore(nf, "black"));
+    }
+  });
+
+  it("keeps purple and pink out of the neutral set", () => {
+    expect(isNeutral("purple")).toBe(false);
+    expect(isNeutral("pink")).toBe(false);
+  });
+
+  it("labels purple and pink pairings without falling through to undefined", () => {
+    for (const nf of NEW_FAMILIES) {
+      for (const other of ALL_FAMILIES) {
+        const label = pairLabel(nf, other);
+        expect(label, `${nf}+${other}`).not.toMatch(/undefined/);
+        expect(label, `${nf}+${other}`).toContain(" + ");
+      }
+    }
+    expect(pairLabel("purple", "black")).toBe("purple + black");
+    expect(pairLabel("pink", "charcoal")).toBe("pink + charcoal");
+  });
+
+  it("leaves the existing pair matrix untouched", () => {
+    expect(pairScore("charcoal", "black")).toBe(9.5);
+    expect(pairScore("baby-blue", "black")).toBe(9.5);
+    expect(pairScore("beige", "black")).toBe(9.5);
+    expect(pairScore("white", "grey")).toBe(9.5);
+    expect(pairScore("greenish-blue", "black")).toBe(9.5);
+    expect(pairScore("charcoal", "apricot")).toBe(8.2);
+    expect(pairScore("brown", "white")).toBe(8.8);
+    expect(pairScore("grey", "grey")).toBe(5.8);
+  });
+});
+
 describe("recommendation engine", () => {
   it("generates only top + bottom + shoe combinations — socks never enter", () => {
     const candidates = allCandidates(NEUTRAL_CTX, EMPTY_USER);
-    expect(candidates.length).toBe(7 * 8 * 2);
+    expect(candidates.length).toBe(9 * 8 * 2);
     const byId = new Map(wardrobe.map((i) => [i.id, i]));
     for (const c of candidates) {
       expect(byId.get(c.combo.top)?.category).toBe("top");
@@ -84,6 +212,15 @@ describe("recommendation engine", () => {
   it("HIMLAND participates in candidate combinations", () => {
     const candidates = allCandidates(NEUTRAL_CTX, EMPTY_USER);
     expect(candidates.some((c) => c.combo.bottom === "bottom-004")).toBe(true);
+  });
+
+  it("both new tops participate in candidate combinations", () => {
+    const candidates = allCandidates(NEUTRAL_CTX, EMPTY_USER);
+    for (const id of ["top-008", "top-009"]) {
+      const mine = candidates.filter((c) => c.combo.top === id);
+      expect(mine.length, id).toBe(8 * 2);
+      for (const c of mine) expect(Number.isFinite(c.breakdown.total), id).toBe(true);
+    }
   });
 
   it("FILA slides participate as a shoe option", () => {

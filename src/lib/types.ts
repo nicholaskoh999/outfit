@@ -33,7 +33,9 @@ export type ColorFamily =
   | "baby-blue"
   | "greenish-blue"
   | "apricot"
-  | "brown";
+  | "brown"
+  | "purple"
+  | "pink";
 
 export type ImageRole = "hero" | "front" | "back" | "worn" | "detail";
 

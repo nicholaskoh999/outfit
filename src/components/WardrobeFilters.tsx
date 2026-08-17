@@ -31,6 +31,8 @@ const COLOR_OPTIONS: { value: ColorFamily; label: string }[] = [
   { value: "greenish-blue", label: "Greenish Blue" },
   { value: "apricot", label: "Apricot" },
   { value: "brown", label: "Brown" },
+  { value: "purple", label: "Purple" },
+  { value: "pink", label: "Pink" },
 ];
 
 const FIT_OPTIONS: Fit[] = ["slim", "regular", "relaxed", "loose", "wide", "oversized"];
