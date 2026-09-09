@@ -152,10 +152,13 @@ imagery.
 Studio try-on is body-driven rather than a flat overlay: the fixed-height,
 7.38-head mannequin exposes named neck, shoulder, chest, waist, hip, crotch,
 knee, ankle and foot landmarks. Weight changes horizontal landmarks only.
-Garment paths are generated from those landmarks plus item type and fit profile;
-the original product photography is used only as texture clipped inside each
-fitted silhouette. Calibrated source anchors live in `tryOn.anchors`, while
-unsupported pieces use the same geometry as a disclosed schematic fallback.
+Garment paths and target anchors are generated from those landmarks plus item
+type and fit profile. Calibrated source anchors are paired to those target
+anchors in a small triangulated mesh; every triangle receives its own affine
+transform, so shoulders, sleeves, waist, crotch, legs, hems and shoes deform as
+independent regions rather than through one bounding-box scale. Original product
+photography supplies the mesh texture. Unsupported pieces use the same outer
+geometry as a disclosed schematic fallback.
 
 ## Implementation notes for the next phase
 

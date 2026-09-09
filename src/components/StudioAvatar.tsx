@@ -1,11 +1,22 @@
 import { useId, useState, type DragEvent } from "react";
 import { getItem } from "@/lib/data";
-import { AVATAR_BOTTOM, AVATAR_HEIGHT, AVATAR_TOP, bodyLandmarks, garmentGeometry, sourceBounds, type BodyLandmarks, type GarmentGeometry } from "@/lib/studioGeometry";
+import { AVATAR_BOTTOM, AVATAR_HEIGHT, AVATAR_TOP, bodyLandmarks, garmentGeometry, shoeGeometry, type BodyLandmarks, type GarmentGeometry } from "@/lib/studioGeometry";
+import { garmentMesh, matrixToSvg } from "@/lib/studioMesh";
 import type { OutfitSlot, StudioDraft, WardrobeItem } from "@/lib/types";
 
 interface StudioAvatarProps {
   draft: StudioDraft;
   onWear: (slot: OutfitSlot, itemId: string) => void;
+}
+
+function expandedTrianglePoints(points: readonly { x: number; y: number }[], amount = 0.9) {
+  const center = points.reduce((sum, point) => ({ x: sum.x + point.x / 3, y: sum.y + point.y / 3 }), { x: 0, y: 0 });
+  return points.map((point) => {
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    return `${point.x + (dx / distance) * amount},${point.y + (dy / distance) * amount}`;
+  }).join(" ");
 }
 
 function Mannequin({ body }: { body: BodyLandmarks }) {
@@ -27,38 +38,44 @@ function Mannequin({ body }: { body: BodyLandmarks }) {
   );
 }
 
-function TextureFill({ item, geometry, clipId }: { item: WardrobeItem; geometry: GarmentGeometry; clipId: string }) {
+function MeshTexture({ item, geometry, clipId }: { item: WardrobeItem; geometry: GarmentGeometry; clipId: string }) {
   const texture = item.tryOn?.textureAsset;
   const sourcePath = item.tryOn?.sourcePath;
-  const source = sourceBounds(item);
-  if (!texture || !sourcePath || !source || source.width <= 0 || source.height <= 0) return null;
-  const scaleX = geometry.bounds.width / source.width;
-  const scaleY = geometry.bounds.height / source.height;
-  const transform = `translate(${geometry.bounds.x} ${geometry.bounds.y}) scale(${scaleX} ${scaleY}) translate(${-source.x} ${-source.y})`;
+  if (!texture || !sourcePath) return null;
+  const mesh = garmentMesh(item, geometry);
   return (
     <>
       <defs>
-        <clipPath id={clipId}><path d={geometry.path} /></clipPath>
+        <clipPath id={`${clipId}-outer`}><path d={geometry.path} /></clipPath>
         <clipPath id={`${clipId}-source`}><path d={sourcePath} /></clipPath>
+        {mesh.map((triangle, index) => (
+          <clipPath key={index} id={`${clipId}-triangle-${index}`}>
+            <polygon points={expandedTrianglePoints(triangle.target)} />
+          </clipPath>
+        ))}
       </defs>
-      <g clipPath={`url(#${clipId})`}>
-        <g transform={transform} clipPath={`url(#${clipId}-source)`}>
-          <image href={texture} width="1200" height="1500" preserveAspectRatio="none" data-studio-texture={texture} />
-        </g>
+      <g clipPath={`url(#${clipId}-outer)`} data-mesh-regions={mesh.length}>
+        {mesh.map((triangle, index) => (
+          <g key={index} clipPath={`url(#${clipId}-triangle-${index})`} data-mesh-region={triangle.names.join("/")} data-affine-matrix={matrixToSvg(triangle.matrix)}>
+            <g transform={matrixToSvg(triangle.matrix)} clipPath={`url(#${clipId}-source)`}>
+              <image href={texture} width="1200" height="1500" preserveAspectRatio="none" data-studio-texture={texture} />
+            </g>
+          </g>
+        ))}
       </g>
     </>
   );
 }
 
 function GarmentShape({ item, geometry, clipId, annotate = true }: { item: WardrobeItem; geometry: GarmentGeometry; clipId: string; annotate?: boolean }) {
-  const calibrated = Boolean(item.tryOn?.textureAsset && sourceBounds(item));
-  const stroke = item.color.tone === "light" ? "#aaa49a" : "rgba(255,255,255,.28)";
+  const calibrated = Boolean(item.tryOn?.textureAsset && item.tryOn.sourcePath && item.tryOn.anchors);
+  const stroke = calibrated ? item.color.hex : item.color.tone === "light" ? "#aaa49a" : "rgba(255,255,255,.28)";
   return (
     <g data-preview-mode={annotate ? (calibrated ? "asset" : "fallback") : undefined} data-item-id={annotate ? item.id : undefined} data-fit-profile={annotate ? geometry.fitProfile : undefined}>
       <path d={geometry.path} fill={item.color.hex} opacity={calibrated ? 0.18 : 1} stroke={stroke} strokeWidth="1.35" />
-      {calibrated && <TextureFill item={item} geometry={geometry} clipId={clipId} />}
+      {calibrated && <MeshTexture item={item} geometry={geometry} clipId={clipId} />}
       {calibrated && <path d={geometry.path} fill={item.color.hex} opacity="0.08" />}
-      <path d={geometry.path} fill="none" stroke={stroke} strokeWidth="1.25" />
+      <path d={geometry.path} fill="none" stroke={stroke} strokeWidth={calibrated ? "1.7" : "1.25"} />
       {geometry.seamPaths.map((path, index) => <path key={index} d={path} fill="none" stroke={stroke} strokeWidth="0.8" opacity="0.75" />)}
     </g>
   );
@@ -66,16 +83,19 @@ function GarmentShape({ item, geometry, clipId, annotate = true }: { item: Wardr
 
 function GarmentLayer({ item, weight }: { item: WardrobeItem; weight: number }) {
   const uid = useId().replaceAll(":", "");
-  const geometry = garmentGeometry(item, weight);
   if (item.category === "shoe") {
-    const calibrated = Boolean(item.tryOn?.textureAsset && sourceBounds(item));
+    const body = bodyLandmarks(weight);
+    const leftGeometry = shoeGeometry(item, body, "left");
+    const rightGeometry = shoeGeometry(item, body, "right");
+    const calibrated = Boolean(item.tryOn?.textureAsset && item.tryOn.sourcePath && item.tryOn.anchors);
     return (
-      <g data-preview-mode={calibrated ? "asset" : "fallback"} data-item-id={item.id} data-fit-profile={geometry.fitProfile}>
-        <GarmentShape item={item} geometry={geometry} clipId={`shoe-${uid}-right`} annotate={false} />
-        <g transform="translate(320 0) scale(-1 1)"><GarmentShape item={item} geometry={geometry} clipId={`shoe-${uid}-left`} annotate={false} /></g>
+      <g data-preview-mode={calibrated ? "asset" : "fallback"} data-item-id={item.id} data-fit-profile={rightGeometry.fitProfile}>
+        <GarmentShape item={item} geometry={leftGeometry} clipId={`shoe-${uid}-left`} annotate={false} />
+        <GarmentShape item={item} geometry={rightGeometry} clipId={`shoe-${uid}-right`} annotate={false} />
       </g>
     );
   }
+  const geometry = garmentGeometry(item, weight);
   return <GarmentShape item={item} geometry={geometry} clipId={`${geometry.slot}-${uid}`} />;
 }
 

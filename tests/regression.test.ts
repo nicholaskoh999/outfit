@@ -5,7 +5,8 @@ import { wardrobe } from "@/lib/data";
 import { isNeutral, pairLabel, pairScore } from "@/lib/colors";
 import { allCandidates } from "@/lib/recommend";
 import { DEFAULT_STUDIO, migrateUserState } from "@/lib/store";
-import { AVATAR_HEIGHT, bodyLandmarks, garmentGeometry, sourceBounds } from "@/lib/studioGeometry";
+import { AVATAR_BOTTOM, AVATAR_HEIGHT, bodyLandmarks, garmentGeometry, shoeGeometry } from "@/lib/studioGeometry";
+import { affineFromTriangles, garmentMesh, transformPoint, type MeshTriangle } from "@/lib/studioMesh";
 import type { ColorFamily, UserState, WardrobeItem } from "@/lib/types";
 
 const EMPTY_USER: UserState = {
@@ -290,8 +291,6 @@ describe("Studio state migration", () => {
       expect(item.tryOn?.fitProfile, id).toBe(item.fit ?? "regular");
       expect(Object.keys(item.tryOn?.anchors ?? {}).length, id).toBeGreaterThanOrEqual(5);
       expect(item.tryOn?.sourcePath, id).toMatch(/^M.+z$/i);
-      expect(sourceBounds(item)?.width, id).toBeGreaterThan(0);
-      expect(sourceBounds(item)?.height, id).toBeGreaterThan(0);
       const assetPath = join(__dirname, "..", "public", item.tryOn!.asset!);
       expect(existsSync(assetPath), item.tryOn!.asset).toBe(true);
       const texturePath = join(__dirname, "..", "public", item.tryOn!.textureAsset!);
@@ -305,14 +304,74 @@ describe("Studio state migration", () => {
 
   it("uses required source anchors for each calibrated garment slot", () => {
     const required = {
-      "top-002": ["neckCenter", "shoulderLeft", "shoulderRight", "hemLeft", "hemRight"],
-      "bottom-006": ["waistLeft", "waistRight", "crotch", "outerHemLeft", "outerHemRight"],
-      "shoe-001": ["heel", "upper", "toe", "soleLeft", "soleRight"],
+      "top-002": ["neckLeft", "neckRight", "shoulderLeft", "shoulderRight", "sleeveOuterLeft", "sleeveOuterRight", "chestLeft", "chestRight", "hemLeft", "hemRight"],
+      "bottom-006": ["waistLeft", "waistRight", "hipLeft", "hipRight", "crotch", "leftKneeOuter", "rightKneeOuter", "leftHemOuter", "rightHemOuter"],
+      "shoe-001": ["heelTop", "upper", "toe", "soleHeel", "soleToe", "center"],
     } as const;
     for (const [id, anchors] of Object.entries(required)) {
       const item = wardrobe.find((entry) => entry.id === id)!;
       for (const anchor of anchors) expect(item.tryOn?.anchors[anchor], `${id}:${anchor}`).toHaveLength(2);
     }
+  });
+
+  it("maps every affine triangle vertex to its requested target", () => {
+    const source = [{ x: 12, y: 15 }, { x: 80, y: 25 }, { x: 30, y: 95 }] as const;
+    const target = [{ x: 100, y: 40 }, { x: 175, y: 62 }, { x: 88, y: 160 }] as const;
+    const matrix = affineFromTriangles(source, target);
+    source.forEach((point, index) => {
+      const mapped = transformPoint(matrix, point);
+      expect(mapped.x).toBeCloseTo(target[index].x, 8);
+      expect(mapped.y).toBeCloseTo(target[index].y, 8);
+    });
+  });
+
+  const assertMeshVertex = (triangle: MeshTriangle, anchor: string) => {
+    const index = triangle.names.indexOf(anchor);
+    expect(index, `mesh does not contain ${anchor}`).toBeGreaterThanOrEqual(0);
+    const mapped = transformPoint(triangle.matrix, triangle.source[index]);
+    expect(mapped.x).toBeCloseTo(triangle.target[index].x, 7);
+    expect(mapped.y).toBeCloseTo(triangle.target[index].y, 7);
+  };
+
+  it("maps the calibrated tee shoulders and hem to fitted target landmarks", () => {
+    const item = wardrobe.find((entry) => entry.id === "top-002")!;
+    const geometry = garmentGeometry(item, 72);
+    const mesh = garmentMesh(item, geometry);
+    for (const anchor of ["shoulderLeft", "shoulderRight", "hemLeft", "hemRight"]) {
+      assertMeshVertex(mesh.find((region) => region.names.includes(anchor))!, anchor);
+    }
+  });
+
+  it("maps the calibrated trouser crotch and both leg hems", () => {
+    const item = wardrobe.find((entry) => entry.id === "bottom-006")!;
+    const geometry = garmentGeometry(item, 72);
+    const mesh = garmentMesh(item, geometry);
+    for (const anchor of ["crotch", "leftHemInner", "leftHemOuter", "rightHemInner", "rightHemOuter"]) {
+      assertMeshVertex(mesh.find((region) => region.names.includes(anchor))!, anchor);
+    }
+  });
+
+  it("uses genuinely non-uniform affine regions instead of one garment matrix", () => {
+    for (const id of ["top-002", "bottom-006", "shoe-001"]) {
+      const item = wardrobe.find((entry) => entry.id === id)!;
+      const matrices = garmentMesh(item, garmentGeometry(item, 72)).map(({ matrix }) =>
+        [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].map((value) => value.toFixed(6)).join(","),
+      );
+      expect(new Set(matrices).size, id).toBeGreaterThan(1);
+    }
+  });
+
+  it("maps the reused shoe source independently to the left and right feet", () => {
+    const item = wardrobe.find((entry) => entry.id === "shoe-001")!;
+    const body = bodyLandmarks(72);
+    const left = shoeGeometry(item, body, "left");
+    const right = shoeGeometry(item, body, "right");
+    expect(left.anchors.toe.x).toBeLessThan(body.ankleLeft.x);
+    expect(right.anchors.toe.x).toBeGreaterThan(body.ankleRight.x);
+    expect(left.anchors.soleToe.y).toBe(AVATAR_BOTTOM);
+    expect(right.anchors.soleToe.y).toBe(AVATAR_BOTTOM);
+    assertMeshVertex(garmentMesh(item, left).find((region) => region.names.includes("toe"))!, "toe");
+    assertMeshVertex(garmentMesh(item, right).find((region) => region.names.includes("toe"))!, "toe");
   });
 
   it("keeps the avatar at 7.38 heads and changes only horizontal body landmarks with weight", () => {
@@ -325,6 +384,13 @@ describe("Studio state migration", () => {
     expect(heavy.shoulderLeft.x).toBeLessThan(light.shoulderLeft.x);
     expect(heavy.waistLeft.x).toBeLessThan(light.waistLeft.x);
     expect(heavy.hipLeft.x).toBeLessThan(light.hipLeft.x);
+    const top = wardrobe.find((entry) => entry.id === "top-002")!;
+    const lightTop = garmentGeometry(top, 55).anchors;
+    const heavyTop = garmentGeometry(top, 90).anchors;
+    expect(heavyTop.shoulderLeft.x).toBeLessThan(lightTop.shoulderLeft.x);
+    expect(heavyTop.chestLeft.x).toBeLessThan(lightTop.chestLeft.x);
+    expect(heavyTop.hemLeft.x).toBeLessThan(lightTop.hemLeft.x);
+    expect(heavyTop.hemLeft.y).toBe(lightTop.hemLeft.y);
   });
 
   it("derives garment geometry from weight, type and fit profile", () => {

@@ -39,6 +39,8 @@ export interface GarmentGeometry {
   path: string;
   bounds: Bounds;
   seamPaths: string[];
+  /** Explicit fitted landmarks consumed directly by the calibrated mesh. */
+  anchors: Record<string, Point>;
 }
 
 export const AVATAR_TOP = 40;
@@ -125,32 +127,50 @@ export function topGeometry(item: WardrobeItem, body: BodyLandmarks): GarmentGeo
   const longSleeve = item.type.includes("long_sleeve");
   const sleeveY = longSleeve ? 306 : shoulderY + profile.sleeve;
   const sleeveOuter = longSleeve ? 13 : 18;
-  const sleeveInner = longSleeve ? 2 : 2;
   const neckY = body.neckLeft.y + 3;
+  const anchors: Record<string, Point> = {
+    neckLeft: { x: body.neckLeft.x, y: neckY },
+    neckCenter: { x: 160, y: neckY + 13 },
+    neckRight: { x: body.neckRight.x, y: neckY },
+    shoulderLeft: { x: shoulderLeft, y: shoulderY },
+    shoulderRight: { x: shoulderRight, y: shoulderY },
+    sleeveOuterLeft: { x: shoulderLeft - sleeveOuter, y: sleeveY },
+    sleeveOuterRight: { x: shoulderRight + sleeveOuter, y: sleeveY },
+    sleeveInnerLeft: { x: shoulderLeft + 2, y: sleeveY + 4 },
+    sleeveInnerRight: { x: shoulderRight - 2, y: sleeveY + 4 },
+    chestLeft: { x: chestLeft, y: body.chestLeft.y },
+    chestCenter: { x: 160, y: body.chestLeft.y },
+    chestRight: { x: chestRight, y: body.chestRight.y },
+    hemLeft: { x: hemLeft, y: hemY },
+    hemCenter: { x: 160, y: hemY },
+    hemRight: { x: hemRight, y: hemY },
+  };
+  const a = anchors;
   const path = [
-    `M ${body.neckLeft.x} ${neckY}`,
-    `Q 160 ${neckY + 12} ${body.neckRight.x} ${neckY}`,
-    `C ${body.neckRight.x + 10} ${neckY + 7} ${shoulderRight - 12} ${shoulderY - 3} ${shoulderRight} ${shoulderY}`,
-    `L ${shoulderRight + sleeveOuter} ${sleeveY}`,
-    `Q ${shoulderRight + 9} ${sleeveY + 7} ${shoulderRight - sleeveInner} ${sleeveY + 4}`,
-    `L ${chestRight} ${body.chestRight.y}`,
-    `Q ${hemRight + 2} ${body.waistRight.y + 8} ${hemRight} ${hemY}`,
-    `Q 160 ${hemY + 5} ${hemLeft} ${hemY}`,
-    `Q ${hemLeft - 2} ${body.waistLeft.y + 8} ${chestLeft} ${body.chestLeft.y}`,
-    `L ${shoulderLeft + sleeveInner} ${sleeveY + 4}`,
-    `Q ${shoulderLeft - 9} ${sleeveY + 7} ${shoulderLeft - sleeveOuter} ${sleeveY}`,
-    `L ${shoulderLeft} ${shoulderY}`,
-    `C ${shoulderLeft + 12} ${shoulderY - 3} ${body.neckLeft.x - 10} ${neckY + 7} ${body.neckLeft.x} ${neckY} Z`,
+    `M ${a.neckLeft.x} ${a.neckLeft.y}`,
+    `Q 160 ${neckY + 12} ${a.neckRight.x} ${a.neckRight.y}`,
+    `C ${body.neckRight.x + 10} ${neckY + 7} ${shoulderRight - 12} ${shoulderY - 3} ${a.shoulderRight.x} ${a.shoulderRight.y}`,
+    `L ${a.sleeveOuterRight.x} ${a.sleeveOuterRight.y}`,
+    `Q ${shoulderRight + 9} ${sleeveY + 7} ${a.sleeveInnerRight.x} ${a.sleeveInnerRight.y}`,
+    `L ${a.chestRight.x} ${a.chestRight.y}`,
+    `Q ${hemRight + 2} ${body.waistRight.y + 8} ${a.hemRight.x} ${a.hemRight.y}`,
+    `Q 160 ${hemY + 5} ${a.hemLeft.x} ${a.hemLeft.y}`,
+    `Q ${hemLeft - 2} ${body.waistLeft.y + 8} ${a.chestLeft.x} ${a.chestLeft.y}`,
+    `L ${a.sleeveInnerLeft.x} ${a.sleeveInnerLeft.y}`,
+    `Q ${shoulderLeft - 9} ${sleeveY + 7} ${a.sleeveOuterLeft.x} ${a.sleeveOuterLeft.y}`,
+    `L ${a.shoulderLeft.x} ${a.shoulderLeft.y}`,
+    `C ${shoulderLeft + 12} ${shoulderY - 3} ${body.neckLeft.x - 10} ${neckY + 7} ${a.neckLeft.x} ${a.neckLeft.y} Z`,
   ].join(" ");
   return {
     slot: "top",
     fitProfile,
     path,
-    bounds: { x: shoulderLeft - sleeveOuter, y: neckY, width: shoulderRight - shoulderLeft + sleeveOuter * 2, height: hemY - neckY + 5 },
+    bounds: { x: a.sleeveOuterLeft.x, y: neckY, width: a.sleeveOuterRight.x - a.sleeveOuterLeft.x, height: hemY - neckY + 5 },
     seamPaths: [
-      `M ${body.neckLeft.x} ${neckY} Q 160 ${neckY + 12} ${body.neckRight.x} ${neckY}`,
+      `M ${a.neckLeft.x} ${neckY} Q 160 ${neckY + 12} ${a.neckRight.x} ${neckY}`,
       `M ${hemLeft + 3} ${hemY - 3} Q 160 ${hemY + 1} ${hemRight - 3} ${hemY - 3}`,
     ],
+    anchors,
   };
 }
 
@@ -160,16 +180,18 @@ export function bottomGeometry(item: WardrobeItem, body: BodyLandmarks): Garment
   const shorts = item.type.includes("short");
   const waistY = body.waistLeft.y + 18;
   const hipY = body.hipLeft.y;
-  const crotchY = body.crotch.y + (shorts ? -1 : 2);
-  const hemY = shorts ? 352 : body.ankleLeft.y + 3;
+  const crotchY = body.crotch.y + 10;
+  const thighY = body.crotch.y + 7;
+  const hemY = shorts ? 352 : body.ankleLeft.y + 7;
+  const kneeY = shorts ? hemY - 10 : body.kneeLeft.y;
   const waistLeft = body.waistLeft.x - profile.waist;
   const waistRight = body.waistRight.x + profile.waist;
   const hipLeft = body.hipLeft.x - profile.hip;
   const hipRight = body.hipRight.x + profile.hip;
-  const thighOuterLeft = 160 - body.thighHalf - profile.thigh - 8;
-  const thighOuterRight = 160 + body.thighHalf + profile.thigh + 8;
   const leftLegCenter = 143;
   const rightLegCenter = 177;
+  const thighOuterLeft = 160 - body.thighHalf - profile.thigh - 8;
+  const thighOuterRight = 160 + body.thighHalf + profile.thigh + 8;
   const kneeLeftOuter = leftLegCenter - profile.knee;
   const kneeLeftInner = Math.min(156, leftLegCenter + profile.knee);
   const kneeRightInner = Math.max(164, rightLegCenter - profile.knee);
@@ -178,45 +200,84 @@ export function bottomGeometry(item: WardrobeItem, body: BodyLandmarks): Garment
   const hemLeftInner = Math.min(157, leftLegCenter + profile.hem);
   const hemRightInner = Math.max(163, rightLegCenter - profile.hem);
   const hemRightOuter = rightLegCenter + profile.hem;
+  const anchors: Record<string, Point> = {
+    waistLeft: { x: waistLeft, y: waistY },
+    waistCenter: { x: 160, y: waistY + 2 },
+    waistRight: { x: waistRight, y: waistY },
+    hipLeft: { x: hipLeft, y: hipY },
+    pelvisCenter: { x: 160, y: hipY + 5 },
+    hipRight: { x: hipRight, y: hipY },
+    leftThighOuter: { x: thighOuterLeft, y: thighY },
+    leftThighInner: { x: 155, y: thighY },
+    crotch: { x: 160, y: crotchY },
+    rightThighInner: { x: 165, y: thighY },
+    rightThighOuter: { x: thighOuterRight, y: thighY },
+    leftKneeOuter: { x: kneeLeftOuter, y: kneeY },
+    leftKneeInner: { x: kneeLeftInner, y: kneeY },
+    rightKneeInner: { x: kneeRightInner, y: kneeY },
+    rightKneeOuter: { x: kneeRightOuter, y: kneeY },
+    leftHemOuter: { x: hemLeftOuter, y: hemY },
+    leftHemInner: { x: hemLeftInner, y: hemY },
+    rightHemInner: { x: hemRightInner, y: hemY },
+    rightHemOuter: { x: hemRightOuter, y: hemY },
+  };
+  const a = anchors;
   const path = [
-    `M ${waistLeft} ${waistY}`,
-    `Q 160 ${waistY + 4} ${waistRight} ${waistY}`,
-    `C ${waistRight + 2} ${hipY - 5} ${hipRight} ${hipY} ${thighOuterRight} ${crotchY}`,
-    `L ${kneeRightOuter} ${shorts ? hemY - 18 : body.kneeRight.y}`,
-    `L ${hemRightOuter} ${hemY}`,
-    `L ${hemRightInner} ${hemY}`,
-    `L ${kneeRightInner} ${shorts ? hemY - 18 : body.kneeRight.y}`,
-    `L 165 ${crotchY}`,
-    `Q 160 ${crotchY + 10} 155 ${crotchY}`,
-    `L ${kneeLeftInner} ${shorts ? hemY - 18 : body.kneeLeft.y}`,
-    `L ${hemLeftInner} ${hemY}`,
-    `L ${hemLeftOuter} ${hemY}`,
-    `L ${kneeLeftOuter} ${shorts ? hemY - 18 : body.kneeLeft.y}`,
-    `L ${thighOuterLeft} ${crotchY}`,
-    `C ${hipLeft} ${hipY} ${waistLeft - 2} ${hipY - 5} ${waistLeft} ${waistY} Z`,
+    `M ${a.waistLeft.x} ${a.waistLeft.y}`,
+    `Q ${a.waistCenter.x} ${a.waistCenter.y + 2} ${a.waistRight.x} ${a.waistRight.y}`,
+    `C ${waistRight + 2} ${hipY - 5} ${a.hipRight.x} ${a.hipRight.y} ${a.rightThighOuter.x} ${a.rightThighOuter.y}`,
+    `L ${a.rightKneeOuter.x} ${a.rightKneeOuter.y} L ${a.rightHemOuter.x} ${a.rightHemOuter.y} L ${a.rightHemInner.x} ${a.rightHemInner.y}`,
+    `L ${a.rightKneeInner.x} ${a.rightKneeInner.y} L ${a.rightThighInner.x} ${a.rightThighInner.y}`,
+    `Q ${a.crotch.x} ${a.crotch.y + 2} ${a.leftThighInner.x} ${a.leftThighInner.y}`,
+    `L ${a.leftKneeInner.x} ${a.leftKneeInner.y} L ${a.leftHemInner.x} ${a.leftHemInner.y} L ${a.leftHemOuter.x} ${a.leftHemOuter.y}`,
+    `L ${a.leftKneeOuter.x} ${a.leftKneeOuter.y} L ${a.leftThighOuter.x} ${a.leftThighOuter.y}`,
+    `C ${a.hipLeft.x} ${a.hipLeft.y} ${waistLeft - 2} ${hipY - 5} ${a.waistLeft.x} ${a.waistLeft.y} Z`,
   ].join(" ");
+  const minX = Math.min(hipLeft, hemLeftOuter);
+  const maxX = Math.max(hipRight, hemRightOuter);
   return {
     slot: "bottom",
     fitProfile,
     path,
-    bounds: { x: Math.min(hipLeft, hemLeftOuter), y: waistY, width: Math.max(hipRight, hemRightOuter) - Math.min(hipLeft, hemLeftOuter), height: hemY - waistY },
+    bounds: { x: minX, y: waistY, width: maxX - minX, height: hemY - waistY },
     seamPaths: [
       `M ${waistLeft + 2} ${waistY + 5} Q 160 ${waistY + 9} ${waistRight - 2} ${waistY + 5}`,
-      `M 160 ${waistY + 5} L 160 ${crotchY - 2}`,
+      `M 160 ${waistY + 5} L ${a.crotch.x} ${a.crotch.y - 2}`,
     ],
+    anchors,
   };
 }
 
-export function shoeGeometry(item: WardrobeItem, body: BodyLandmarks): GarmentGeometry {
+export function shoeGeometry(item: WardrobeItem, body: BodyLandmarks, side: "left" | "right" = "right"): GarmentGeometry {
   const fitProfile = resolvedFit(item);
-  const ankle = body.ankleRight;
-  const path = `M ${ankle.x - 8} ${ankle.y - 4} C ${ankle.x + 3} ${ankle.y - 5} ${ankle.x + 10} ${ankle.y + 1} ${ankle.x + 17} ${ankle.y + 7} C ${ankle.x + 26} ${ankle.y + 9} ${ankle.x + 34} ${ankle.y + 12} ${ankle.x + 37} ${ankle.y + 17} L ${ankle.x + 37} ${AVATAR_BOTTOM} L ${ankle.x - 10} ${AVATAR_BOTTOM} Q ${ankle.x - 13} ${ankle.y + 8} ${ankle.x - 8} ${ankle.y - 4} Z`;
+  const right = side === "right";
+  const ankle = right ? body.ankleRight : body.ankleLeft;
+  const direction = right ? 1 : -1;
+  const point = (offsetX: number, y: number): Point => ({ x: ankle.x + offsetX * direction, y });
+  const anchors: Record<string, Point> = {
+    heelTop: point(-9, ankle.y - 4),
+    upper: point(10, ankle.y - 3),
+    toeTop: point(34, ankle.y + 8),
+    toe: point(40, ankle.y + 16),
+    soleToe: point(38, AVATAR_BOTTOM),
+    soleHeel: point(-12, AVATAR_BOTTOM),
+    heel: point(-13, ankle.y + 9),
+    center: point(13, ankle.y + 10),
+  };
+  const a = anchors;
+  const boundary = right
+    ? [a.heelTop, a.upper, a.toeTop, a.toe, a.soleToe, a.soleHeel, a.heel]
+    : [a.heelTop, a.heel, a.soleHeel, a.soleToe, a.toe, a.toeTop, a.upper];
+  const path = `M ${boundary.map((entry) => `${entry.x} ${entry.y}`).join(" L ")} Z`;
+  const xs = boundary.map(({ x }) => x);
+  const ys = boundary.map(({ y }) => y);
   return {
     slot: "shoe",
     fitProfile,
     path,
-    bounds: { x: ankle.x - 13, y: ankle.y - 5, width: 50, height: AVATAR_BOTTOM - ankle.y + 5 },
-    seamPaths: [`M ${ankle.x - 9} ${AVATAR_BOTTOM - 4} L ${ankle.x + 35} ${AVATAR_BOTTOM - 4}`],
+    bounds: { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) },
+    seamPaths: [`M ${a.soleHeel.x} ${AVATAR_BOTTOM - 4} L ${a.soleToe.x} ${AVATAR_BOTTOM - 4}`],
+    anchors,
   };
 }
 
@@ -225,16 +286,4 @@ export function garmentGeometry(item: WardrobeItem, weight: number): GarmentGeom
   if (item.category === "top") return topGeometry(item, body);
   if (item.category === "bottom") return bottomGeometry(item, body);
   return shoeGeometry(item, body);
-}
-
-export function sourceBounds(item: WardrobeItem): Bounds | null {
-  const anchors = item.tryOn?.anchors;
-  if (!anchors) return null;
-  const points = Object.values(anchors);
-  if (!points.length) return null;
-  const xs = points.map(([x]) => x);
-  const ys = points.map(([, y]) => y);
-  const x = Math.min(...xs);
-  const y = Math.min(...ys);
-  return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
 }

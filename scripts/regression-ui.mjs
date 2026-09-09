@@ -321,9 +321,13 @@ log("calibrated outfit renders three real asset layers", (await page.locator('[d
 log("calibrated outfit never enters schematic fallback", (await page.locator('[data-preview-mode="fallback"]').count()) === 0);
 log("calibrated outfit status is disclosed", /Calibrated garment preview/i.test(await page.getByTestId("studio-drop-zone").innerText()));
 const studioTexturesLoaded = await page.locator('image[data-studio-texture]').evaluateAll((images) =>
-  images.length === 4 && images.every((image) => image.getAttribute("href")?.endsWith(".webp") && image.getAttribute("data-studio-texture")?.endsWith(".webp")),
+  images.length >= 30 && images.every((image) => image.getAttribute("href")?.endsWith(".webp") && image.getAttribute("data-studio-texture")?.endsWith(".webp")),
 );
-log("calibrated Studio photography is clipped into fitted silhouettes", studioTexturesLoaded);
+log("calibrated Studio photography is rendered through triangle meshes", studioTexturesLoaded);
+for (const id of ["top-002", "bottom-006", "shoe-001"]) {
+  const matrices = await page.locator(`[data-item-id="${id}"] [data-affine-matrix]`).evaluateAll((regions) => regions.map((region) => region.getAttribute("data-affine-matrix")));
+  log(`${id} uses multiple independent affine regions`, matrices.length > 1 && new Set(matrices).size > 1, `regions=${matrices.length}`);
+}
 const topPathAt72 = await page.locator('[data-item-id="top-002"] > path').first().getAttribute("d");
 await page.locator('#studio-weight').fill("90");
 await page.waitForTimeout(100);
