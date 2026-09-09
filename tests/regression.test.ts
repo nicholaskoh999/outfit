@@ -5,7 +5,8 @@ import { wardrobe } from "@/lib/data";
 import { isNeutral, pairLabel, pairScore } from "@/lib/colors";
 import { allCandidates } from "@/lib/recommend";
 import { DEFAULT_STUDIO, migrateUserState } from "@/lib/store";
-import type { ColorFamily, UserState } from "@/lib/types";
+import { AVATAR_HEIGHT, bodyLandmarks, garmentGeometry, sourceBounds } from "@/lib/studioGeometry";
+import type { ColorFamily, UserState, WardrobeItem } from "@/lib/types";
 
 const EMPTY_USER: UserState = {
   favoriteLooks: [],
@@ -275,7 +276,7 @@ describe("Studio state migration", () => {
     expect(migrated.studio).toEqual(DEFAULT_STUDIO);
   });
 
-  it("has one complete calibrated Studio outfit with valid transparent assets", () => {
+  it("has one complete calibrated Studio outfit with landmarks and valid texture assets", () => {
     const calibrated = [
       ["top-002", "top"],
       ["bottom-006", "bottom"],
@@ -285,16 +286,69 @@ describe("Studio state migration", () => {
       const item = wardrobe.find((entry) => entry.id === id)!;
       expect(item.tryOn?.slot, id).toBe(slot);
       expect(item.tryOn?.asset, id).toMatch(/^\/assets\/studio\/.+\.svg$/);
-      expect(item.tryOn?.scale, id).toBeGreaterThan(0);
-      expect(Number.isFinite(item.tryOn?.x), id).toBe(true);
-      expect(Number.isFinite(item.tryOn?.y), id).toBe(true);
+      expect(item.tryOn?.textureAsset, id).toBe(item.images.find((image) => image.type === "hero")!.src);
+      expect(item.tryOn?.fitProfile, id).toBe(item.fit ?? "regular");
+      expect(Object.keys(item.tryOn?.anchors ?? {}).length, id).toBeGreaterThanOrEqual(5);
+      expect(item.tryOn?.sourcePath, id).toMatch(/^M.+z$/i);
+      expect(sourceBounds(item)?.width, id).toBeGreaterThan(0);
+      expect(sourceBounds(item)?.height, id).toBeGreaterThan(0);
       const assetPath = join(__dirname, "..", "public", item.tryOn!.asset!);
       expect(existsSync(assetPath), item.tryOn!.asset).toBe(true);
+      const texturePath = join(__dirname, "..", "public", item.tryOn!.textureAsset!);
+      expect(existsSync(texturePath), item.tryOn!.textureAsset).toBe(true);
       const asset = readFileSync(assetPath, "utf8");
       expect(asset, id).toContain("clipPath");
       expect(asset, id).toContain(item.images.find((image) => image.type === "hero")!.src.split("/").at(-1)!);
       expect(asset, id).not.toContain("<rect");
     }
+  });
+
+  it("uses required source anchors for each calibrated garment slot", () => {
+    const required = {
+      "top-002": ["neckCenter", "shoulderLeft", "shoulderRight", "hemLeft", "hemRight"],
+      "bottom-006": ["waistLeft", "waistRight", "crotch", "outerHemLeft", "outerHemRight"],
+      "shoe-001": ["heel", "upper", "toe", "soleLeft", "soleRight"],
+    } as const;
+    for (const [id, anchors] of Object.entries(required)) {
+      const item = wardrobe.find((entry) => entry.id === id)!;
+      for (const anchor of anchors) expect(item.tryOn?.anchors[anchor], `${id}:${anchor}`).toHaveLength(2);
+    }
+  });
+
+  it("keeps the avatar at 7.38 heads and changes only horizontal body landmarks with weight", () => {
+    const light = bodyLandmarks(55);
+    const heavy = bodyLandmarks(90);
+    expect(AVATAR_HEIGHT / (light.headBottom.y - light.headTop.y)).toBeCloseTo(7.38, 1);
+    for (const name of ["headTop", "headBottom", "shoulderLeft", "chestLeft", "waistLeft", "hipLeft", "crotch", "kneeLeft", "ankleLeft", "leftFoot"] as const) {
+      expect(heavy[name].y, name).toBe(light[name].y);
+    }
+    expect(heavy.shoulderLeft.x).toBeLessThan(light.shoulderLeft.x);
+    expect(heavy.waistLeft.x).toBeLessThan(light.waistLeft.x);
+    expect(heavy.hipLeft.x).toBeLessThan(light.hipLeft.x);
+  });
+
+  it("derives garment geometry from weight, type and fit profile", () => {
+    const top = wardrobe.find((entry) => entry.id === "top-002")!;
+    const regular = garmentGeometry(top, 72);
+    const oversized = garmentGeometry({ ...top, fit: "oversized", tryOn: { ...top.tryOn!, fitProfile: "oversized" } } as WardrobeItem, 72);
+    expect(oversized.bounds.width).toBeGreaterThan(regular.bounds.width);
+    expect(oversized.bounds.height).toBeGreaterThan(regular.bounds.height);
+    expect(garmentGeometry(top, 90).bounds.width).toBeGreaterThan(garmentGeometry(top, 55).bounds.width);
+
+    const trousers = wardrobe.find((entry) => entry.id === "bottom-006")!;
+    const wide = garmentGeometry({ ...trousers, fit: "wide", tryOn: { ...trousers.tryOn!, fitProfile: "wide" } } as WardrobeItem, 72);
+    expect(wide.bounds.width).toBeGreaterThan(garmentGeometry(trousers, 72).bounds.width);
+    const shorts = wardrobe.find((entry) => entry.id === "bottom-004")!;
+    expect(garmentGeometry(shorts, 72).bounds.height).toBeLessThan(garmentGeometry(trousers, 72).bounds.height);
+  });
+
+  it("gives unsupported garments a complete fit-driven fallback silhouette", () => {
+    const unsupported = wardrobe.find((entry) => entry.id === "top-001")!;
+    expect(unsupported.tryOn).toBeUndefined();
+    const geometry = garmentGeometry(unsupported, 72);
+    expect(geometry.fitProfile).toBe("oversized");
+    expect(geometry.path.endsWith("Z")).toBe(true);
+    expect(geometry.bounds.width).toBeGreaterThan(0);
   });
 
   it("restores and bounds a persisted Studio draft", () => {

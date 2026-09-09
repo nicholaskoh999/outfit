@@ -1,5 +1,6 @@
-import { useState, type DragEvent } from "react";
+import { useId, useState, type DragEvent } from "react";
 import { getItem } from "@/lib/data";
+import { AVATAR_BOTTOM, AVATAR_HEIGHT, AVATAR_TOP, bodyLandmarks, garmentGeometry, sourceBounds, type BodyLandmarks, type GarmentGeometry } from "@/lib/studioGeometry";
 import type { OutfitSlot, StudioDraft, WardrobeItem } from "@/lib/types";
 
 interface StudioAvatarProps {
@@ -7,93 +8,87 @@ interface StudioAvatarProps {
   onWear: (slot: OutfitSlot, itemId: string) => void;
 }
 
-function fallbackGarment(item: WardrobeItem, weightFactor: number) {
-  const color = item.color.hex;
-  const stroke = item.color.tone === "light" ? "#bcb7ae" : "rgba(255,255,255,.2)";
-  if (item.category === "top") {
-    const half = 57 + weightFactor * 18;
-    return (
-      <path
-        d={`M ${160 - half} 150 L 118 133 Q 160 147 202 133 L ${160 + half} 150 L ${210 + weightFactor * 12} 250 Q 160 264 ${110 - weightFactor * 12} 250 Z`}
-        fill={color} stroke={stroke} strokeWidth="1.5"
-      />
-    );
-  }
-  if (item.category === "bottom") {
-    const hip = 48 + weightFactor * 16;
-    const shorts = item.type.includes("short");
-    const hem = shorts ? 350 : 510;
-    const inner = shorts ? 344 : 505;
-    return (
-      <path
-        d={`M ${160 - hip} 246 Q 160 255 ${160 + hip} 246 L ${196 + weightFactor * 8} ${hem} L 166 ${hem} L 160 ${inner} L 154 ${hem} L ${124 - weightFactor * 8} ${hem} Z`}
-        fill={color} stroke={stroke} strokeWidth="1.5"
-      />
-    );
-  }
+function Mannequin({ body }: { body: BodyLandmarks }) {
+  const leftShoulder = body.shoulderLeft.x;
+  const rightShoulder = body.shoulderRight.x;
+  const leftHip = body.hipLeft.x;
+  const rightHip = body.hipRight.x;
   return (
-    <g fill={color} stroke={stroke} strokeWidth="1.5">
-      <path d="M104 510 Q128 508 151 526 L151 543 L88 543 Q84 526 104 510Z" />
-      <path d="M216 510 Q192 508 169 526 L169 543 L232 543 Q236 526 216 510Z" />
+    <g fill="#d8d1c7" stroke="#aaa196" strokeWidth="1.15" strokeLinejoin="round" data-landmarks="head neck shoulders chest waist hips crotch knees ankles feet">
+      <ellipse cx="160" cy={(body.headTop.y + body.headBottom.y) / 2} rx="25" ry={(body.headBottom.y - body.headTop.y) / 2} />
+      <path d={`M ${body.neckLeft.x} ${body.headBottom.y - 2} L ${body.neckLeft.x} ${body.neckLeft.y} C ${body.neckLeft.x - 7} 125 ${leftShoulder + 10} 132 ${leftShoulder} ${body.shoulderLeft.y} C ${body.chestLeft.x - 5} 163 ${body.chestLeft.x} ${body.chestLeft.y} ${body.waistLeft.x} ${body.waistLeft.y} C ${body.waistLeft.x} 248 ${leftHip} 258 ${leftHip} ${body.hipLeft.y} C 138 286 147 293 ${body.crotch.x} ${body.crotch.y} C 173 293 182 286 ${rightHip} ${body.hipRight.y} C ${rightHip} 258 ${body.waistRight.x} 248 ${body.waistRight.x} ${body.waistRight.y} C ${body.chestRight.x} ${body.chestRight.y} ${body.chestRight.x + 5} 163 ${rightShoulder} ${body.shoulderRight.y} C ${rightShoulder - 10} 132 ${body.neckRight.x + 7} 125 ${body.neckRight.x} ${body.neckRight.y} L ${body.neckRight.x} ${body.headBottom.y - 2} Z`} />
+      <path d={`M ${leftShoulder + 4} 139 C ${leftShoulder - 18} 153 ${leftShoulder - 21} 184 ${leftShoulder - 19} 213 C ${leftShoulder - 20} 241 ${leftShoulder - 24} 276 ${leftShoulder - 25} 306 C ${leftShoulder - 22} 317 ${leftShoulder - 10} 318 ${leftShoulder - 5} 307 C ${leftShoulder - 3} 278 ${leftShoulder + 2} 246 ${leftShoulder + 5} 217 C ${leftShoulder + 11} 187 ${leftShoulder + 14} 163 ${leftShoulder + 4} 139 Z`} />
+      <path d={`M ${rightShoulder - 4} 139 C ${rightShoulder + 18} 153 ${rightShoulder + 21} 184 ${rightShoulder + 19} 213 C ${rightShoulder + 20} 241 ${rightShoulder + 24} 276 ${rightShoulder + 25} 306 C ${rightShoulder + 22} 317 ${rightShoulder + 10} 318 ${rightShoulder + 5} 307 C ${rightShoulder + 3} 278 ${rightShoulder - 2} 246 ${rightShoulder - 5} 217 C ${rightShoulder - 11} 187 ${rightShoulder - 14} 163 ${rightShoulder - 4} 139 Z`} />
+      <path d={`M ${leftHip + 3} 268 C ${160 - body.thighHalf - 10} 294 ${160 - body.thighHalf - 7} 340 ${160 - body.thighHalf - 4} 374 C ${160 - body.thighHalf - 5} 406 ${body.ankleLeft.x - 2} 468 ${body.ankleLeft.x + 2} ${body.ankleLeft.y} L 159 ${body.ankleLeft.y} C 160 474 162 425 160 389 C 159 350 158 311 160 283 C 148 279 139 274 ${leftHip + 3} 268 Z`} />
+      <path d={`M ${rightHip - 3} 268 C ${160 + body.thighHalf + 10} 294 ${160 + body.thighHalf + 7} 340 ${160 + body.thighHalf + 4} 374 C ${160 + body.thighHalf + 5} 406 ${body.ankleRight.x + 2} 468 ${body.ankleRight.x - 2} ${body.ankleRight.y} L 161 ${body.ankleRight.y} C 160 474 158 425 160 389 C 161 350 162 311 160 283 C 172 279 181 274 ${rightHip - 3} 268 Z`} />
+      <path d={`M ${body.ankleLeft.x + 2} 515 C 138 520 126 525 ${body.leftFoot.x - 6} 534 C 128 540 147 540 159 535 L 159 518 Z`} />
+      <path d={`M ${body.ankleRight.x - 2} 515 C 182 520 194 525 ${body.rightFoot.x + 6} 534 C 192 540 173 540 161 535 L 161 518 Z`} />
     </g>
   );
 }
 
-function GarmentLayer({ item, weightFactor }: { item: WardrobeItem; weightFactor: number }) {
-  const [failed, setFailed] = useState(false);
-  const meta = item.tryOn;
-  if (meta?.asset && !failed) {
-    if (meta.slot === "shoe") {
-      const width = 118 * (meta.scale ?? 1);
-      const height = 94 * (meta.scale ?? 1);
-      const x = 148 + (meta.x ?? 0);
-      const y = 485 + (meta.y ?? 0);
-      return (
-        <g data-preview-mode="asset" data-item-id={item.id}>
-          <foreignObject x={x} y={y} width={width} height={height}>
-            <object data={meta.asset} type="image/svg+xml" className="h-full w-full" onError={() => setFailed(true)} aria-label="" />
-          </foreignObject>
-          <foreignObject x={x} y={y} width={width} height={height} transform="translate(320 0) scale(-1 1)">
-            <object data={meta.asset} type="image/svg+xml" className="h-full w-full" onError={() => setFailed(true)} aria-label="" />
-          </foreignObject>
+function TextureFill({ item, geometry, clipId }: { item: WardrobeItem; geometry: GarmentGeometry; clipId: string }) {
+  const texture = item.tryOn?.textureAsset;
+  const sourcePath = item.tryOn?.sourcePath;
+  const source = sourceBounds(item);
+  if (!texture || !sourcePath || !source || source.width <= 0 || source.height <= 0) return null;
+  const scaleX = geometry.bounds.width / source.width;
+  const scaleY = geometry.bounds.height / source.height;
+  const transform = `translate(${geometry.bounds.x} ${geometry.bounds.y}) scale(${scaleX} ${scaleY}) translate(${-source.x} ${-source.y})`;
+  return (
+    <>
+      <defs>
+        <clipPath id={clipId}><path d={geometry.path} /></clipPath>
+        <clipPath id={`${clipId}-source`}><path d={sourcePath} /></clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`}>
+        <g transform={transform} clipPath={`url(#${clipId}-source)`}>
+          <image href={texture} width="1200" height="1500" preserveAspectRatio="none" data-studio-texture={texture} />
         </g>
-      );
-    }
-    const scale = (meta.scale ?? 1) * (0.96 + weightFactor * 0.08);
+      </g>
+    </>
+  );
+}
+
+function GarmentShape({ item, geometry, clipId, annotate = true }: { item: WardrobeItem; geometry: GarmentGeometry; clipId: string; annotate?: boolean }) {
+  const calibrated = Boolean(item.tryOn?.textureAsset && sourceBounds(item));
+  const stroke = item.color.tone === "light" ? "#aaa49a" : "rgba(255,255,255,.28)";
+  return (
+    <g data-preview-mode={annotate ? (calibrated ? "asset" : "fallback") : undefined} data-item-id={annotate ? item.id : undefined} data-fit-profile={annotate ? geometry.fitProfile : undefined}>
+      <path d={geometry.path} fill={item.color.hex} opacity={calibrated ? 0.18 : 1} stroke={stroke} strokeWidth="1.35" />
+      {calibrated && <TextureFill item={item} geometry={geometry} clipId={clipId} />}
+      {calibrated && <path d={geometry.path} fill={item.color.hex} opacity="0.08" />}
+      <path d={geometry.path} fill="none" stroke={stroke} strokeWidth="1.25" />
+      {geometry.seamPaths.map((path, index) => <path key={index} d={path} fill="none" stroke={stroke} strokeWidth="0.8" opacity="0.75" />)}
+    </g>
+  );
+}
+
+function GarmentLayer({ item, weight }: { item: WardrobeItem; weight: number }) {
+  const uid = useId().replaceAll(":", "");
+  const geometry = garmentGeometry(item, weight);
+  if (item.category === "shoe") {
+    const calibrated = Boolean(item.tryOn?.textureAsset && sourceBounds(item));
     return (
-      <g
-        data-preview-mode="asset"
-        data-item-id={item.id}
-        transform={`translate(${meta.x ?? 0} ${meta.y ?? 0}) translate(160 300) scale(${scale}) translate(-160 -300)`}
-      >
-        <foreignObject x="0" y="0" width="320" height="600">
-          <object data={meta.asset} type="image/svg+xml" className="h-full w-full" onError={() => setFailed(true)} aria-label="" />
-        </foreignObject>
+      <g data-preview-mode={calibrated ? "asset" : "fallback"} data-item-id={item.id} data-fit-profile={geometry.fitProfile}>
+        <GarmentShape item={item} geometry={geometry} clipId={`shoe-${uid}-right`} annotate={false} />
+        <g transform="translate(320 0) scale(-1 1)"><GarmentShape item={item} geometry={geometry} clipId={`shoe-${uid}-left`} annotate={false} /></g>
       </g>
     );
   }
-  return <g data-preview-mode="fallback" data-item-id={item.id}>{fallbackGarment(item, weightFactor)}</g>;
+  return <GarmentShape item={item} geometry={geometry} clipId={`${geometry.slot}-${uid}`} />;
 }
 
 export function StudioAvatar({ draft, onWear }: StudioAvatarProps) {
   const [dragging, setDragging] = useState(false);
-  const weightFactor = (draft.weight - 55) / 35;
-  const shoulder = 52 + weightFactor * 10;
-  const chest = 43 + weightFactor * 13;
-  const waist = 31 + weightFactor * 18;
-  const hip = 36 + weightFactor * 14;
-  const thigh = 18 + weightFactor * 8;
-  const items = [draft.bottomId, draft.topId, draft.shoeId]
-    .map((id) => (id ? getItem(id) : undefined))
-    .filter((item): item is WardrobeItem => Boolean(item));
+  const body = bodyLandmarks(draft.weight);
+  const items = [draft.bottomId, draft.topId, draft.shoeId].map((id) => (id ? getItem(id) : undefined)).filter((item): item is WardrobeItem => Boolean(item));
 
   const drop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragging(false);
     const item = getItem(event.dataTransfer.getData("text/wardrobe-item"));
-    if (item && (item.category === "top" || item.category === "bottom" || item.category === "shoe")) {
-      onWear(item.category, item.id);
-    }
+    if (item && (item.category === "top" || item.category === "bottom" || item.category === "shoe")) onWear(item.category, item.id);
   };
 
   return (
@@ -106,34 +101,16 @@ export function StudioAvatar({ draft, onWear }: StudioAvatarProps) {
       data-testid="studio-drop-zone"
     >
       <div className="absolute left-3 top-3 z-10 label-caps">168 cm</div>
-      {dragging && (
-        <div className="absolute inset-3 z-20 grid place-items-center border border-dashed border-ink bg-paper/85 label-caps">
-          Release to wear
-        </div>
-      )}
-      <svg viewBox="0 0 320 600" role="img" aria-label={`Male fitting avatar at 168 centimetres and ${draft.weight} kilograms`} className="block h-[min(65vh,590px)] min-h-[440px] w-full">
-        <line x1="36" y1="52" x2="36" y2="544" stroke="#c9c3b6" strokeWidth="1" />
-        <line x1="29" y1="52" x2="43" y2="52" stroke="#c9c3b6" />
-        <line x1="29" y1="544" x2="43" y2="544" stroke="#c9c3b6" />
-
-        <g fill="#d8d1c7" stroke="#aaa196" strokeWidth="1.15" strokeLinejoin="round">
-          <ellipse cx="160" cy="76" rx="25" ry="31" />
-          <path d={`M147 100 C148 113 145 120 ${160 - 24} 127 C ${160 - 35} 131 ${160 - shoulder + 9} 134 ${160 - shoulder} 143 C ${160 - chest - 5} 164 ${160 - chest} 184 ${160 - waist} 230 C ${160 - waist + 1} 246 ${160 - hip} 258 ${160 - hip} 274 C ${160 - 22} 283 182 283 ${160 + hip} 274 C ${160 + hip} 258 ${160 + waist - 1} 246 ${160 + waist} 230 C ${160 + chest} 184 ${160 + chest + 5} 164 ${160 + shoulder} 143 C ${160 + shoulder - 9} 134 195 131 184 127 C175 120 172 113 173 100 Z`} />
-          <path d={`M ${160 - shoulder + 4} 140 C ${160 - shoulder - 18} 151 ${160 - shoulder - 21} 181 ${160 - shoulder - 19} 209 C ${160 - shoulder - 20} 235 ${160 - shoulder - 24} 272 ${160 - shoulder - 25} 304 C ${160 - shoulder - 22} 315 ${160 - shoulder - 10} 316 ${160 - shoulder - 5} 306 C ${160 - shoulder - 3} 277 ${160 - shoulder + 2} 244 ${160 - shoulder + 5} 216 C ${160 - shoulder + 11} 187 ${160 - shoulder + 14} 164 ${160 - shoulder + 4} 140 Z`} />
-          <path d={`M ${160 + shoulder - 4} 140 C ${160 + shoulder + 18} 151 ${160 + shoulder + 21} 181 ${160 + shoulder + 19} 209 C ${160 + shoulder + 20} 235 ${160 + shoulder + 24} 272 ${160 + shoulder + 25} 304 C ${160 + shoulder + 22} 315 ${160 + shoulder + 10} 316 ${160 + shoulder + 5} 306 C ${160 + shoulder + 3} 277 ${160 + shoulder - 2} 244 ${160 + shoulder - 5} 216 C ${160 + shoulder - 11} 187 ${160 + shoulder - 14} 164 ${160 + shoulder - 4} 140 Z`} />
-          <path d={`M ${160 - hip + 3} 268 C ${160 - thigh - 10} 292 ${160 - thigh - 7} 337 ${160 - thigh - 4} 373 C ${160 - thigh - 5} 405 ${145 - weightFactor * 2} 465 147 519 L159 519 C160 475 162 424 160 389 C159 348 158 309 160 283 C148 279 139 274 ${160 - hip + 3} 268 Z`} />
-          <path d={`M ${160 + hip - 3} 268 C ${160 + thigh + 10} 292 ${160 + thigh + 7} 337 ${160 + thigh + 4} 373 C ${160 + thigh + 5} 405 ${175 + weightFactor * 2} 465 173 519 L161 519 C160 475 158 424 160 389 C161 348 162 309 160 283 C172 279 181 274 ${160 + hip - 3} 268 Z`} />
-          <path d="M147 515 C138 520 126 524 120 533 C128 538 146 539 159 534 L159 518 Z" />
-          <path d="M173 515 C182 520 194 524 200 533 C192 538 174 539 161 534 L161 518 Z" />
-        </g>
-        {items.map((item) => <GarmentLayer key={item.id} item={item} weightFactor={weightFactor} />)}
+      {dragging && <div className="absolute inset-3 z-20 grid place-items-center border border-dashed border-ink bg-paper/85 label-caps">Release to wear</div>}
+      <svg viewBox="0 0 320 600" role="img" aria-label={`Male fitting avatar at 168 centimetres and ${draft.weight} kilograms`} className="block h-[min(65vh,590px)] min-h-[440px] w-full" data-avatar-height={AVATAR_HEIGHT} data-weight={draft.weight}>
+        <line x1="36" y1={AVATAR_TOP} x2="36" y2={AVATAR_BOTTOM} stroke="#c9c3b6" strokeWidth="1" />
+        <line x1="29" y1={AVATAR_TOP} x2="43" y2={AVATAR_TOP} stroke="#c9c3b6" />
+        <line x1="29" y1={AVATAR_BOTTOM} x2="43" y2={AVATAR_BOTTOM} stroke="#c9c3b6" />
+        <Mannequin body={body} />
+        {items.map((item) => <GarmentLayer key={item.id} item={item} weight={draft.weight} />)}
       </svg>
       <p className="absolute bottom-3 inset-x-3 text-center text-[11px] text-ink-faint">
-        {items.length === 0
-          ? "Select a top, bottom and shoe"
-          : items.some((item) => !item.tryOn?.asset)
-            ? "Schematic preview · calibrated try-on image unavailable"
-            : "Calibrated garment preview"}
+        {items.length === 0 ? "Select a top, bottom and shoe" : items.some((item) => !item.tryOn?.textureAsset) ? "Schematic preview · calibrated try-on image unavailable" : "Calibrated garment preview"}
       </p>
     </div>
   );

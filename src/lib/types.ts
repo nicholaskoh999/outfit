@@ -48,10 +48,14 @@ export interface ItemImage {
 /** Optional Studio-only overlay calibration. Hero photography stays untouched. */
 export interface TryOnMetadata {
   asset?: string;
+  /** Original product photography used only as texture inside fitted geometry. */
+  textureAsset?: string;
   slot: OutfitSlot;
-  scale?: number;
-  x?: number;
-  y?: number;
+  fitProfile: Fit;
+  /** Source-photo garment landmarks in pixels; they define the texture crop. */
+  anchors: Record<string, readonly [number, number]>;
+  /** Tight source-photo silhouette used to remove the studio background. */
+  sourcePath: string;
 }
 
 export interface ItemColor {

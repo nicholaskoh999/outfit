@@ -320,10 +320,17 @@ await page.waitForTimeout(250);
 log("calibrated outfit renders three real asset layers", (await page.locator('[data-preview-mode="asset"]').count()) === 3);
 log("calibrated outfit never enters schematic fallback", (await page.locator('[data-preview-mode="fallback"]').count()) === 0);
 log("calibrated outfit status is disclosed", /Calibrated garment preview/i.test(await page.getByTestId("studio-drop-zone").innerText()));
-const studioAssetsLoaded = await page.locator('object[data^="/assets/studio/"]').evaluateAll((objects) =>
-  objects.length === 4 && objects.every((object) => object.contentDocument?.documentElement.nodeName.toLowerCase() === "svg"),
+const studioTexturesLoaded = await page.locator('image[data-studio-texture]').evaluateAll((images) =>
+  images.length === 4 && images.every((image) => image.getAttribute("href")?.endsWith(".webp") && image.getAttribute("data-studio-texture")?.endsWith(".webp")),
 );
-log("calibrated Studio assets load", studioAssetsLoaded);
+log("calibrated Studio photography is clipped into fitted silhouettes", studioTexturesLoaded);
+const topPathAt72 = await page.locator('[data-item-id="top-002"] > path').first().getAttribute("d");
+await page.locator('#studio-weight').fill("90");
+await page.waitForTimeout(100);
+const topPathAt90 = await page.locator('[data-item-id="top-002"] > path').first().getAttribute("d");
+log("calibrated top geometry responds to body weight", topPathAt72 !== topPathAt90);
+log("body exposes named fitting landmarks", (await avatar.locator('[data-landmarks]').getAttribute("data-landmarks"))?.includes("ankles"));
+log("avatar declares one fixed landmark height", (await avatar.getAttribute("data-avatar-height")) === "502");
 
 // --- Overflow sweep -------------------------------------------------------
 let anyOverflow = false;

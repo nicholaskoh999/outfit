@@ -149,10 +149,13 @@ item's `assetNotes` records it. The SVG silhouette
 in `ItemImage` remains only as a fallback for future items added without
 imagery.
 
-Studio try-on overlays are separate transparent, calibrated assets under
-`public/assets/studio/`; they clip the original product photography without
-changing the wardrobe hero images. Unsupported pieces retain the disclosed
-schematic preview.
+Studio try-on is body-driven rather than a flat overlay: the fixed-height,
+7.38-head mannequin exposes named neck, shoulder, chest, waist, hip, crotch,
+knee, ankle and foot landmarks. Weight changes horizontal landmarks only.
+Garment paths are generated from those landmarks plus item type and fit profile;
+the original product photography is used only as texture clipped inside each
+fitted silhouette. Calibrated source anchors live in `tryOn.anchors`, while
+unsupported pieces use the same geometry as a disclosed schematic fallback.
 
 ## Implementation notes for the next phase
 
