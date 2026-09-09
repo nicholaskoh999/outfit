@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500">
+  <defs>
+    <clipPath id="garment">
+      <path d="M390 180c128-10 292-10 420 0l54 1092-230 5-34-650-34 650-230-5z"/>
+    </clipPath>
+  </defs>
+  <image href="../bottoms/hm-loose-fit-suit-trousers-brown-checked.webp" width="1200" height="1500" clip-path="url(#garment)"/>
+</svg>

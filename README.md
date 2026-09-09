@@ -149,6 +149,11 @@ item's `assetNotes` records it. The SVG silhouette
 in `ItemImage` remains only as a fallback for future items added without
 imagery.
 
+Studio try-on overlays are separate transparent, calibrated assets under
+`public/assets/studio/`; they clip the original product photography without
+changing the wardrobe hero images. Unsupported pieces retain the disclosed
+schematic preview.
+
 ## Implementation notes for the next phase
 
 1. New photography: 4:5, ~1200×1500 WebP, warm off-white background —

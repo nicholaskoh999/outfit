@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500">
+  <defs>
+    <clipPath id="garment">
+      <path d="M500 405c56 18 144 18 200 0l98 32c55 18 80 61 99 108l78 91-107 111-58-66 13 420H377l13-420-58 66-107-111 78-91c19-47 44-90 99-108z"/>
+    </clipPath>
+  </defs>
+  <image href="../tops/tntco-speed-logo-tee-greenish-blue.webp" width="1200" height="1500" clip-path="url(#garment)"/>
+</svg>

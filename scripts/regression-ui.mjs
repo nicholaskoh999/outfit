@@ -304,6 +304,27 @@ log(
 );
 log("legacy v1 gains default Studio state", migrated.studio?.weight === 72);
 
+await page.evaluate(() => {
+  const state = JSON.parse(localStorage.getItem("outfit.nkmwei.de:v1") ?? "{}");
+  state.statusOverrides = {};
+  localStorage.setItem("outfit.nkmwei.de:v1", JSON.stringify(state));
+});
+await page.reload({ waitUntil: "networkidle" });
+await page.getByRole("button", { name: "Tops", exact: true }).last().click();
+await page.getByRole("button", { name: /Wear TNTCO Speed Logo Tee/ }).click();
+await page.getByRole("button", { name: "Bottoms", exact: true }).last().click();
+await page.getByRole("button", { name: /Wear H&M Loose Fit Suit Trousers/ }).click();
+await page.getByRole("button", { name: "Shoes", exact: true }).last().click();
+await page.getByRole("button", { name: /Wear New Balance 530/ }).click();
+await page.waitForTimeout(250);
+log("calibrated outfit renders three real asset layers", (await page.locator('[data-preview-mode="asset"]').count()) === 3);
+log("calibrated outfit never enters schematic fallback", (await page.locator('[data-preview-mode="fallback"]').count()) === 0);
+log("calibrated outfit status is disclosed", /Calibrated garment preview/i.test(await page.getByTestId("studio-drop-zone").innerText()));
+const studioAssetsLoaded = await page.locator('object[data^="/assets/studio/"]').evaluateAll((objects) =>
+  objects.length === 4 && objects.every((object) => object.contentDocument?.documentElement.nodeName.toLowerCase() === "svg"),
+);
+log("calibrated Studio assets load", studioAssetsLoaded);
+
 // --- Overflow sweep -------------------------------------------------------
 let anyOverflow = false;
 for (const route of ["/", "/wardrobe", "/outfits?filter=worn", "/favorites", "/studio", "/wardrobe/bottom-004"]) {

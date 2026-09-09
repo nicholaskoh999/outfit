@@ -43,28 +43,46 @@ function GarmentLayer({ item, weightFactor }: { item: WardrobeItem; weightFactor
   const [failed, setFailed] = useState(false);
   const meta = item.tryOn;
   if (meta?.asset && !failed) {
-    const width = 320 * (meta.scale ?? 1);
+    if (meta.slot === "shoe") {
+      const width = 118 * (meta.scale ?? 1);
+      const height = 94 * (meta.scale ?? 1);
+      const x = 148 + (meta.x ?? 0);
+      const y = 485 + (meta.y ?? 0);
+      return (
+        <g data-preview-mode="asset" data-item-id={item.id}>
+          <foreignObject x={x} y={y} width={width} height={height}>
+            <object data={meta.asset} type="image/svg+xml" className="h-full w-full" onError={() => setFailed(true)} aria-label="" />
+          </foreignObject>
+          <foreignObject x={x} y={y} width={width} height={height} transform="translate(320 0) scale(-1 1)">
+            <object data={meta.asset} type="image/svg+xml" className="h-full w-full" onError={() => setFailed(true)} aria-label="" />
+          </foreignObject>
+        </g>
+      );
+    }
+    const scale = (meta.scale ?? 1) * (0.96 + weightFactor * 0.08);
     return (
-      <image
-        href={meta.asset}
-        x={(320 - width) / 2 + (meta.x ?? 0)}
-        y={meta.y ?? 0}
-        width={width}
-        height="600"
-        preserveAspectRatio="xMidYMid meet"
-        onError={() => setFailed(true)}
-      />
+      <g
+        data-preview-mode="asset"
+        data-item-id={item.id}
+        transform={`translate(${meta.x ?? 0} ${meta.y ?? 0}) translate(160 300) scale(${scale}) translate(-160 -300)`}
+      >
+        <foreignObject x="0" y="0" width="320" height="600">
+          <object data={meta.asset} type="image/svg+xml" className="h-full w-full" onError={() => setFailed(true)} aria-label="" />
+        </foreignObject>
+      </g>
     );
   }
-  return fallbackGarment(item, weightFactor);
+  return <g data-preview-mode="fallback" data-item-id={item.id}>{fallbackGarment(item, weightFactor)}</g>;
 }
 
 export function StudioAvatar({ draft, onWear }: StudioAvatarProps) {
   const [dragging, setDragging] = useState(false);
   const weightFactor = (draft.weight - 55) / 35;
-  const shoulder = 48 + weightFactor * 13;
-  const waist = 31 + weightFactor * 23;
-  const hip = 35 + weightFactor * 19;
+  const shoulder = 52 + weightFactor * 10;
+  const chest = 43 + weightFactor * 13;
+  const waist = 31 + weightFactor * 18;
+  const hip = 36 + weightFactor * 14;
+  const thigh = 18 + weightFactor * 8;
   const items = [draft.bottomId, draft.topId, draft.shoeId]
     .map((id) => (id ? getItem(id) : undefined))
     .filter((item): item is WardrobeItem => Boolean(item));
@@ -98,17 +116,16 @@ export function StudioAvatar({ draft, onWear }: StudioAvatarProps) {
         <line x1="29" y1="52" x2="43" y2="52" stroke="#c9c3b6" />
         <line x1="29" y1="544" x2="43" y2="544" stroke="#c9c3b6" />
 
-        <g fill="#d4b39c" stroke="#ad8f7c" strokeWidth="1.2">
-          <ellipse cx="160" cy="82" rx="31" ry="37" />
-          <path d={`M142 112 L178 112 L ${160 + shoulder} 151 Q ${160 + waist} 198 ${160 + hip} 248 Q 160 ${260 + weightFactor * 5} ${160 - hip} 248 Q ${160 - waist} 198 ${160 - shoulder} 151 Z`} />
-          <path d={`M ${160 - shoulder + 5} 151 Q 92 188 88 290 L106 293 Q 117 215 ${160 - waist} 196 Z`} />
-          <path d={`M ${160 + shoulder - 5} 151 Q 228 188 232 290 L214 293 Q 203 215 ${160 + waist} 196 Z`} />
-          <path d={`M ${160 - hip} 242 Q ${143 - weightFactor * 3} 253 158 248 L ${158 - weightFactor * 2} 364 L ${154 - weightFactor * 2} 511 L ${136 - weightFactor * 4} 511 L ${126 - weightFactor * 7} 365 Z`} />
-          <path d={`M ${160 + hip} 242 Q ${177 + weightFactor * 3} 253 162 248 L ${162 + weightFactor * 2} 364 L ${166 + weightFactor * 2} 511 L ${184 + weightFactor * 4} 511 L ${194 + weightFactor * 7} 365 Z`} />
-          <path d="M140 505 L139 535 Q116 542 93 537 Q91 527 111 516Z" />
-          <path d="M180 505 L181 535 Q204 542 227 537 Q229 527 209 516Z" />
+        <g fill="#d8d1c7" stroke="#aaa196" strokeWidth="1.15" strokeLinejoin="round">
+          <ellipse cx="160" cy="76" rx="25" ry="31" />
+          <path d={`M147 100 C148 113 145 120 ${160 - 24} 127 C ${160 - 35} 131 ${160 - shoulder + 9} 134 ${160 - shoulder} 143 C ${160 - chest - 5} 164 ${160 - chest} 184 ${160 - waist} 230 C ${160 - waist + 1} 246 ${160 - hip} 258 ${160 - hip} 274 C ${160 - 22} 283 182 283 ${160 + hip} 274 C ${160 + hip} 258 ${160 + waist - 1} 246 ${160 + waist} 230 C ${160 + chest} 184 ${160 + chest + 5} 164 ${160 + shoulder} 143 C ${160 + shoulder - 9} 134 195 131 184 127 C175 120 172 113 173 100 Z`} />
+          <path d={`M ${160 - shoulder + 4} 140 C ${160 - shoulder - 18} 151 ${160 - shoulder - 21} 181 ${160 - shoulder - 19} 209 C ${160 - shoulder - 20} 235 ${160 - shoulder - 24} 272 ${160 - shoulder - 25} 304 C ${160 - shoulder - 22} 315 ${160 - shoulder - 10} 316 ${160 - shoulder - 5} 306 C ${160 - shoulder - 3} 277 ${160 - shoulder + 2} 244 ${160 - shoulder + 5} 216 C ${160 - shoulder + 11} 187 ${160 - shoulder + 14} 164 ${160 - shoulder + 4} 140 Z`} />
+          <path d={`M ${160 + shoulder - 4} 140 C ${160 + shoulder + 18} 151 ${160 + shoulder + 21} 181 ${160 + shoulder + 19} 209 C ${160 + shoulder + 20} 235 ${160 + shoulder + 24} 272 ${160 + shoulder + 25} 304 C ${160 + shoulder + 22} 315 ${160 + shoulder + 10} 316 ${160 + shoulder + 5} 306 C ${160 + shoulder + 3} 277 ${160 + shoulder - 2} 244 ${160 + shoulder - 5} 216 C ${160 + shoulder - 11} 187 ${160 + shoulder - 14} 164 ${160 + shoulder - 4} 140 Z`} />
+          <path d={`M ${160 - hip + 3} 268 C ${160 - thigh - 10} 292 ${160 - thigh - 7} 337 ${160 - thigh - 4} 373 C ${160 - thigh - 5} 405 ${145 - weightFactor * 2} 465 147 519 L159 519 C160 475 162 424 160 389 C159 348 158 309 160 283 C148 279 139 274 ${160 - hip + 3} 268 Z`} />
+          <path d={`M ${160 + hip - 3} 268 C ${160 + thigh + 10} 292 ${160 + thigh + 7} 337 ${160 + thigh + 4} 373 C ${160 + thigh + 5} 405 ${175 + weightFactor * 2} 465 173 519 L161 519 C160 475 158 424 160 389 C161 348 162 309 160 283 C172 279 181 274 ${160 + hip - 3} 268 Z`} />
+          <path d="M147 515 C138 520 126 524 120 533 C128 538 146 539 159 534 L159 518 Z" />
+          <path d="M173 515 C182 520 194 524 200 533 C192 538 174 539 161 534 L161 518 Z" />
         </g>
-        <path d="M132 72 Q134 38 160 39 Q190 41 190 76 Q176 61 137 66Z" fill="#38332e" />
         {items.map((item) => <GarmentLayer key={item.id} item={item} weightFactor={weightFactor} />)}
       </svg>
       <p className="absolute bottom-3 inset-x-3 text-center text-[11px] text-ink-faint">

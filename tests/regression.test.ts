@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { wardrobe } from "@/lib/data";
 import { isNeutral, pairLabel, pairScore } from "@/lib/colors";
@@ -273,6 +273,28 @@ describe("Studio state migration", () => {
     expect(migrated.wearLog).toEqual(legacy.wearLog);
     expect(migrated.statusOverrides).toEqual(legacy.statusOverrides);
     expect(migrated.studio).toEqual(DEFAULT_STUDIO);
+  });
+
+  it("has one complete calibrated Studio outfit with valid transparent assets", () => {
+    const calibrated = [
+      ["top-002", "top"],
+      ["bottom-006", "bottom"],
+      ["shoe-001", "shoe"],
+    ] as const;
+    for (const [id, slot] of calibrated) {
+      const item = wardrobe.find((entry) => entry.id === id)!;
+      expect(item.tryOn?.slot, id).toBe(slot);
+      expect(item.tryOn?.asset, id).toMatch(/^\/assets\/studio\/.+\.svg$/);
+      expect(item.tryOn?.scale, id).toBeGreaterThan(0);
+      expect(Number.isFinite(item.tryOn?.x), id).toBe(true);
+      expect(Number.isFinite(item.tryOn?.y), id).toBe(true);
+      const assetPath = join(__dirname, "..", "public", item.tryOn!.asset!);
+      expect(existsSync(assetPath), item.tryOn!.asset).toBe(true);
+      const asset = readFileSync(assetPath, "utf8");
+      expect(asset, id).toContain("clipPath");
+      expect(asset, id).toContain(item.images.find((image) => image.type === "hero")!.src.split("/").at(-1)!);
+      expect(asset, id).not.toContain("<rect");
+    }
   });
 
   it("restores and bounds a persisted Studio draft", () => {

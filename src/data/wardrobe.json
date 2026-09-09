@@ -39,6 +39,13 @@
       "styles": ["street", "relaxed"],
       "status": "active",
       "images": [{ "type": "hero", "src": "/assets/tops/tntco-speed-logo-tee-greenish-blue.webp" }],
+      "tryOn": {
+        "asset": "/assets/studio/tntco-speed-logo-tee-greenish-blue-tryon.svg",
+        "slot": "top",
+        "scale": 0.64,
+        "x": 0,
+        "y": -75
+      },
       "asset_quality": "high",
       "assetNotes": ["Clean product image.", "Preserve blue-grey / greenish-blue tone."]
     },
@@ -326,6 +333,13 @@
       "styles": ["smart", "clean"],
       "status": "active",
       "images": [{ "type": "hero", "src": "/assets/bottoms/hm-loose-fit-suit-trousers-brown-checked.webp" }],
+      "tryOn": {
+        "asset": "/assets/studio/hm-loose-fit-suit-trousers-brown-checked-tryon.svg",
+        "slot": "bottom",
+        "scale": 0.95,
+        "x": 0,
+        "y": 90
+      },
       "asset_quality": "high",
       "assetNotes": ["Normalized 4:5 studio product image from update pack."]
     },
@@ -393,6 +407,13 @@
       "images": [
         { "type": "hero", "src": "/assets/shoes/new-balance-530-silver-metallic.webp" }
       ],
+      "tryOn": {
+        "asset": "/assets/studio/new-balance-530-silver-metallic-tryon.svg",
+        "slot": "shoe",
+        "scale": 0.78,
+        "x": 0,
+        "y": 0
+      },
       "asset_quality": "high",
       "assetNotes": [
         "Normalized 4:5 studio product image from update pack (replaced original hero).",
