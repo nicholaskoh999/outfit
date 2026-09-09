@@ -32,6 +32,7 @@ Routing uses `BrowserRouter`; static hosting needs an SPA fallback to
 | `/wardrobe` | Wardrobe grid — category tabs, search, filters |
 | `/wardrobe/:itemId` | Item detail |
 | `/favorites` | Favorites — separate **Looks** and **Pieces** areas |
+| `/studio` | Studio — weight-aware 168 cm avatar, tap/drag outfit fitting, saved drafts |
 
 The active recommendation context (occasion + refinements) is carried in URL
 query params (`?occasion=factory&weather=hot&work=factory-floor`), so detail
@@ -122,6 +123,7 @@ Single key `outfit.nkmwei.de:v1` containing:
 - `decisions` — per-combo approve/reject with optional reason + date
 - `wearLog` — every Wear Today press ({key, items, date}); Undo removes it
 - `statusOverrides` — runtime item status changes (laundry, retired, …)
+- `studio` — weight, current top/bottom/shoe ids, and saved Studio combo keys
 
 Clearing the key resets the prototype to pure seed state.
 

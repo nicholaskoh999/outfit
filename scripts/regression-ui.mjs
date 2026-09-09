@@ -7,6 +7,7 @@
  * Env:   CHROMIUM_PATH — explicit Chromium binary (otherwise Playwright's).
  */
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const PORT = 4199;
@@ -18,13 +19,15 @@ const log = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"} ${name}${detail ? " — " + detail : ""}`);
 };
 
-const server = spawn("npx", ["vite", "preview", "--port", String(PORT), "--strictPort"], {
+const viteBin = fileURLToPath(new URL("../node_modules/vite/bin/vite.js", import.meta.url));
+const server = spawn(process.execPath, [viteBin, "preview", "--host", "127.0.0.1", "--port", String(PORT), "--strictPort"], {
   stdio: "ignore",
-  detached: true,
+  detached: process.platform !== "win32",
 });
 const stopServer = () => {
   try {
-    process.kill(-server.pid, "SIGTERM");
+    if (process.platform === "win32") server.kill("SIGTERM");
+    else process.kill(-server.pid, "SIGTERM");
   } catch {
     /* already gone */
   }
@@ -247,9 +250,63 @@ for (const route of [
 }
 log("OUTFIT logo navigates home from every route", logoOk);
 
+// --- Studio: mobile tap flow + persistence -------------------------------
+await page.goto(BASE + "/studio", { waitUntil: "networkidle" });
+log("Studio route renders directly", (await page.getByRole("heading", { name: "Studio" }).count()) === 1);
+log("mobile navigation has five entries", (await page.locator("nav.fixed a").count()) === 5);
+const avatar = page.getByRole("img", { name: /Male fitting avatar/ });
+const avatarHeightBefore = await avatar.evaluate((el) => el.getBoundingClientRect().height);
+await page.locator('#studio-weight').fill("88");
+await page.waitForTimeout(150);
+const avatarHeightAfter = await avatar.evaluate((el) => el.getBoundingClientRect().height);
+log("weight control updates avatar label", (await avatar.getAttribute("aria-label"))?.includes("88 kilograms"));
+log("avatar height stays stable when weight changes", Math.abs(avatarHeightBefore - avatarHeightAfter) < 1);
+
+await page.getByRole("button", { name: /Wear COS Relaxed Lightweight/ }).click();
+await page.getByRole("button", { name: "Bottoms", exact: true }).last().click();
+await page.getByRole("button", { name: /Wear H&M Relaxed Fit Interlock Shorts/ }).click();
+await page.getByRole("button", { name: "Shoes", exact: true }).last().click();
+await page.getByRole("button", { name: /Wear FILA Sleek Tender Linear/ }).click();
+const studioText = await page.evaluate(() => document.body.innerText);
+log("tap-to-wear fills top slot", studioText.includes("COS Relaxed Lightweight Cotton T-Shirt"));
+log("tap-to-wear fills bottom slot", studioText.includes("H&M Relaxed Fit Interlock Shorts"));
+log("tap-to-wear fills shoe slot", studioText.includes("FILA Sleek Tender Linear"));
+log("missing try-on asset uses disclosed fallback", /Schematic preview.*unavailable/i.test(studioText));
+const brokenImages = await page.evaluate(() => [...document.images].filter((img) => img.complete && img.naturalWidth === 0).length);
+log("Studio contains no broken images", brokenImages === 0, `broken=${brokenImages}`);
+await page.getByRole("button", { name: "Save Studio look" }).click();
+log("Studio look saves", /Look saved/i.test(await page.locator('p[role="status"]').innerText()));
+await page.reload({ waitUntil: "networkidle" });
+const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem("outfit.nkmwei.de:v1") ?? "{}"));
+log("refresh restores Studio weight", persisted.studio?.weight === 88, `weight=${persisted.studio?.weight}`);
+log(
+  "refresh restores current Studio draft",
+  persisted.studio?.topId === "top-006" && persisted.studio?.bottomId === "bottom-008" && persisted.studio?.shoeId === "shoe-002",
+);
+log("saved Studio look reconstructs from ids", persisted.studio?.savedLooks?.includes("top-006_bottom-008_shoe-002"));
+
+// Explicit legacy v1 migration regression in a real browser.
+await page.evaluate(() => {
+  localStorage.setItem("outfit.nkmwei.de:v1", JSON.stringify({
+    favoriteLooks: ["legacy-look"],
+    favoritePieces: ["top-001"],
+    decisions: { legacy: { verdict: "approved", date: "2026-01-01" } },
+    wearLog: [{ key: "legacy", items: ["top-001"], date: "2026-01-01" }],
+    statusOverrides: { "top-002": "laundry" },
+  }));
+});
+await page.reload({ waitUntil: "networkidle" });
+await page.waitForTimeout(100);
+const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem("outfit.nkmwei.de:v1") ?? "{}"));
+log(
+  "legacy v1 fields survive Studio initialization",
+  migrated.favoriteLooks?.[0] === "legacy-look" && migrated.favoritePieces?.[0] === "top-001" && migrated.decisions?.legacy && migrated.wearLog?.length === 1 && migrated.statusOverrides?.["top-002"] === "laundry",
+);
+log("legacy v1 gains default Studio state", migrated.studio?.weight === 72);
+
 // --- Overflow sweep -------------------------------------------------------
 let anyOverflow = false;
-for (const route of ["/", "/wardrobe", "/outfits?filter=worn", "/favorites", "/wardrobe/bottom-004"]) {
+for (const route of ["/", "/wardrobe", "/outfits?filter=worn", "/favorites", "/studio", "/wardrobe/bottom-004"]) {
   await page.goto(BASE + route, { waitUntil: "networkidle" });
   const o = await overflow();
   if (o > 0) {
@@ -258,6 +315,25 @@ for (const route of ["/", "/wardrobe", "/outfits?filter=worn", "/favorites", "/w
   }
 }
 log("no horizontal page overflow on key routes", !anyOverflow);
+
+// --- Studio: desktop drag-and-drop ---------------------------------------
+const desktop = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await desktop.goto(BASE + "/studio", { waitUntil: "networkidle" });
+log("desktop navigation includes Studio", (await desktop.locator('header a:text-is("Studio")').count()) === 1);
+await desktop.getByRole("button", { name: /Wear FOG Essentials 1977 Tee/ }).dragTo(desktop.getByTestId("studio-drop-zone"));
+await desktop.waitForTimeout(150);
+const desktopState = await desktop.evaluate(() => JSON.parse(localStorage.getItem("outfit.nkmwei.de:v1") ?? "{}").studio);
+log("desktop drop snaps item into valid top slot", desktopState?.topId === "top-001", `top=${desktopState?.topId}`);
+const desktopOverflow = await desktop.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+log("Studio has no desktop horizontal overflow", desktopOverflow === 0, `${desktopOverflow}px`);
+await desktop.close();
+
+const tablet = await browser.newPage({ viewport: { width: 820, height: 1180 } });
+await tablet.goto(BASE + "/studio", { waitUntil: "networkidle" });
+const tabletOverflow = await tablet.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+log("Studio has no tablet horizontal overflow", tabletOverflow === 0, `${tabletOverflow}px`);
+log("tablet keeps tap selectors usable", (await tablet.getByRole("button", { name: /Wear FOG Essentials 1977 Tee/ }).count()) === 1);
+await tablet.close();
 
 await browser.close();
 stopServer();

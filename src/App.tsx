@@ -7,6 +7,7 @@ import { OutfitDetailPage } from "./pages/OutfitDetailPage";
 import { WardrobePage } from "./pages/WardrobePage";
 import { ItemDetailPage } from "./pages/ItemDetailPage";
 import { FavoritesPage } from "./pages/FavoritesPage";
+import { StudioPage } from "./pages/StudioPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/wardrobe" element={<WardrobePage />} />
         <Route path="/wardrobe/:itemId" element={<ItemDetailPage />} />
         <Route path="/favorites" element={<FavoritesPage />} />
+        <Route path="/studio" element={<StudioPage />} />
         <Route path="*" element={<TodayPage />} />
       </Routes>
     </AppShell>

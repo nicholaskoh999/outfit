@@ -6,6 +6,7 @@ const NAV = [
   { to: "/outfits", label: "Outfits" },
   { to: "/wardrobe", label: "Wardrobe" },
   { to: "/favorites", label: "Favorites" },
+  { to: "/studio", label: "Studio" },
 ];
 
 function navClass(isActive: boolean): string {
@@ -24,7 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="display text-[22px] leading-none">OUTFIT</span>
             <span className="label-caps hidden sm:inline">nkmwei.de</span>
           </NavLink>
-          <nav className="hidden sm:flex items-center gap-8">
+          <nav className="hidden sm:flex items-center gap-6 md:gap-8">
             {NAV.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.to === "/"} className={({ isActive }) => navClass(isActive)}>
                 {n.label}
@@ -38,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom navigation */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-paper/95 backdrop-blur border-t hairline">
-        <div className="grid grid-cols-4 h-[3.4rem] mb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-5 h-[3.4rem] mb-[env(safe-area-inset-bottom)]">
           {NAV.map((n) => (
             <NavLink
               key={n.to}

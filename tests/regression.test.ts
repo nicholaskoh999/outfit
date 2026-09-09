@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { wardrobe } from "@/lib/data";
 import { isNeutral, pairLabel, pairScore } from "@/lib/colors";
 import { allCandidates } from "@/lib/recommend";
+import { DEFAULT_STUDIO, migrateUserState } from "@/lib/store";
 import type { ColorFamily, UserState } from "@/lib/types";
 
 const EMPTY_USER: UserState = {
@@ -12,6 +13,7 @@ const EMPTY_USER: UserState = {
   decisions: {},
   wearLog: [],
   statusOverrides: {},
+  studio: DEFAULT_STUDIO,
 };
 
 const NEUTRAL_CTX = {
@@ -252,5 +254,43 @@ describe("recommendation engine", () => {
       expect(combo, `${top}+${bottom} missing`).toBeDefined();
       expect(combo!.breakdown.total).toBeGreaterThanOrEqual(median);
     }
+  });
+});
+
+describe("Studio state migration", () => {
+  it("extends legacy v1 state without clearing existing user data", () => {
+    const legacy = {
+      favoriteLooks: ["top-001_bottom-001_shoe-001"],
+      favoritePieces: ["top-002"],
+      decisions: { example: { verdict: "approved", date: "2026-01-01" } },
+      wearLog: [{ key: "example", items: ["top-001"], date: "2026-01-01" }],
+      statusOverrides: { "top-003": "laundry" },
+    };
+    const migrated = migrateUserState(legacy);
+    expect(migrated.favoriteLooks).toEqual(legacy.favoriteLooks);
+    expect(migrated.favoritePieces).toEqual(legacy.favoritePieces);
+    expect(migrated.decisions).toEqual(legacy.decisions);
+    expect(migrated.wearLog).toEqual(legacy.wearLog);
+    expect(migrated.statusOverrides).toEqual(legacy.statusOverrides);
+    expect(migrated.studio).toEqual(DEFAULT_STUDIO);
+  });
+
+  it("restores and bounds a persisted Studio draft", () => {
+    const migrated = migrateUserState({
+      studio: {
+        weight: 120,
+        topId: "top-006",
+        bottomId: "bottom-008",
+        shoeId: "shoe-002",
+        savedLooks: ["top-006_bottom-008_shoe-002"],
+      },
+    });
+    expect(migrated.studio).toEqual({
+      weight: 90,
+      topId: "top-006",
+      bottomId: "bottom-008",
+      shoeId: "shoe-002",
+      savedLooks: ["top-006_bottom-008_shoe-002"],
+    });
   });
 });

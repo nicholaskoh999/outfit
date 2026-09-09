@@ -7,25 +7,72 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { ItemStatus, OutfitCombo, RejectReason, UserState, WearEntry } from "./types";
+import type {
+  ItemStatus,
+  OutfitCombo,
+  OutfitSlot,
+  RejectReason,
+  StudioDraft,
+  UserState,
+  WearEntry,
+} from "./types";
 import { comboKey } from "./data";
 
 const STORAGE_KEY = "outfit.nkmwei.de:v1";
 
-const EMPTY_STATE: UserState = {
+export const DEFAULT_STUDIO: StudioDraft = {
+  weight: 72,
+  topId: null,
+  bottomId: null,
+  shoeId: null,
+  savedLooks: [],
+};
+
+export const EMPTY_STATE: UserState = {
   favoriteLooks: [],
   favoritePieces: [],
   decisions: {},
   wearLog: [],
   statusOverrides: {},
+  studio: DEFAULT_STUDIO,
 };
 
-function loadState(): UserState {
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
+}
+
+/** Extends legacy v1 data in place without clearing or renaming its storage key. */
+export function migrateUserState(value: unknown): UserState {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return EMPTY_STATE;
+  const parsed = value as Partial<UserState>;
+  const studio = parsed.studio && typeof parsed.studio === "object" ? parsed.studio : DEFAULT_STUDIO;
+  const weight = typeof studio.weight === "number" && Number.isFinite(studio.weight)
+    ? Math.min(90, Math.max(55, studio.weight))
+    : DEFAULT_STUDIO.weight;
+  return {
+    ...EMPTY_STATE,
+    ...parsed,
+    favoriteLooks: stringArray(parsed.favoriteLooks),
+    favoritePieces: stringArray(parsed.favoritePieces),
+    decisions: parsed.decisions && typeof parsed.decisions === "object" ? parsed.decisions : {},
+    wearLog: Array.isArray(parsed.wearLog) ? parsed.wearLog : [],
+    statusOverrides:
+      parsed.statusOverrides && typeof parsed.statusOverrides === "object" ? parsed.statusOverrides : {},
+    studio: {
+      weight,
+      topId: typeof studio.topId === "string" ? studio.topId : null,
+      bottomId: typeof studio.bottomId === "string" ? studio.bottomId : null,
+      shoeId: typeof studio.shoeId === "string" ? studio.shoeId : null,
+      savedLooks: stringArray(studio.savedLooks),
+    },
+  };
+}
+
+export function loadState(): UserState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return EMPTY_STATE;
-    const parsed = JSON.parse(raw) as Partial<UserState>;
-    return { ...EMPTY_STATE, ...parsed };
+    return migrateUserState(JSON.parse(raw));
   } catch {
     return EMPTY_STATE;
   }
@@ -41,6 +88,10 @@ interface StoreApi {
   wearToday: (combo: OutfitCombo) => WearEntry;
   undoWear: (entry: WearEntry) => void;
   setItemStatus: (itemId: string, status: ItemStatus) => void;
+  setStudioWeight: (weight: number) => void;
+  setStudioSlot: (slot: OutfitSlot, itemId: string | null) => void;
+  saveStudioLook: () => void;
+  loadStudioLook: (key: string) => void;
   resetAll: () => void;
 }
 
@@ -124,6 +175,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setUser((u) => ({ ...u, statusOverrides: { ...u.statusOverrides, [itemId]: status } }));
   }, []);
 
+  const setStudioWeight = useCallback((weight: number) => {
+    setUser((u) => ({
+      ...u,
+      studio: { ...u.studio, weight: Math.min(90, Math.max(55, weight)) },
+    }));
+  }, []);
+
+  const setStudioSlot = useCallback((slot: OutfitSlot, itemId: string | null) => {
+    const field = `${slot}Id` as "topId" | "bottomId" | "shoeId";
+    setUser((u) => ({ ...u, studio: { ...u.studio, [field]: itemId } }));
+  }, []);
+
+  const saveStudioLook = useCallback(() => {
+    setUser((u) => {
+      const { topId, bottomId, shoeId } = u.studio;
+      if (!topId || !bottomId || !shoeId) return u;
+      const key = comboKey({ top: topId, bottom: bottomId, shoe: shoeId });
+      if (u.studio.savedLooks.includes(key)) return u;
+      return { ...u, studio: { ...u.studio, savedLooks: [...u.studio.savedLooks, key] } };
+    });
+  }, []);
+
+  const loadStudioLook = useCallback((key: string) => {
+    const [topId, bottomId, shoeId] = key.split("_");
+    if (!topId || !bottomId || !shoeId) return;
+    setUser((u) => ({ ...u, studio: { ...u.studio, topId, bottomId, shoeId } }));
+  }, []);
+
   const resetAll = useCallback(() => setUser(EMPTY_STATE), []);
 
   const api = useMemo<StoreApi>(
@@ -137,6 +216,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       wearToday,
       undoWear,
       setItemStatus,
+      setStudioWeight,
+      setStudioSlot,
+      saveStudioLook,
+      loadStudioLook,
       resetAll,
     }),
     [
@@ -149,6 +232,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       wearToday,
       undoWear,
       setItemStatus,
+      setStudioWeight,
+      setStudioSlot,
+      saveStudioLook,
+      loadStudioLook,
       resetAll,
     ],
   );

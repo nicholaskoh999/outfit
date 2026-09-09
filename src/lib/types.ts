@@ -45,6 +45,15 @@ export interface ItemImage {
   src: string;
 }
 
+/** Optional Studio-only overlay calibration. Hero photography stays untouched. */
+export interface TryOnMetadata {
+  asset?: string;
+  slot: OutfitSlot;
+  scale?: number;
+  x?: number;
+  y?: number;
+}
+
 export interface ItemColor {
   name: string;
   family: ColorFamily;
@@ -87,6 +96,7 @@ export interface WardrobeItem {
   /** Asset-package metadata (image provenance, not garment data). */
   asset_quality?: string;
   assetNotes?: string[];
+  tryOn?: TryOnMetadata;
 }
 
 export interface OutfitCombo {
@@ -163,6 +173,15 @@ export interface WearEntry {
   date: string;
 }
 
+export interface StudioDraft {
+  weight: number;
+  topId: string | null;
+  bottomId: string | null;
+  shoeId: string | null;
+  /** Stable combo keys; each can be reconstructed from canonical wardrobe ids. */
+  savedLooks: string[];
+}
+
 /** Everything the user changes at runtime — persisted in localStorage only. */
 export interface UserState {
   favoriteLooks: string[];
@@ -170,4 +189,5 @@ export interface UserState {
   decisions: Record<string, OutfitDecision>;
   wearLog: WearEntry[];
   statusOverrides: Record<string, ItemStatus>;
+  studio: StudioDraft;
 }
